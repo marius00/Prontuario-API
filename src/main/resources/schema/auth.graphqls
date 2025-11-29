@@ -1,15 +1,25 @@
-extend type Query {
+type Query {
     whoAmI: User
     listUsers: [PublicUserInfo!]!
+    listSectors: [Sector!]!
 }
 type Mutation {
     login(sector: String!, username: String!, password: String!): LoginResult
+    createUser(sector: String!, username: String!): CreateUserResult
+    createSector(name: String!, code: String): Response!
 }
 
 type User {
     id: String
+    username: String
+    sector: String
     roles: [Role!]!
     isAuthenticated: Boolean!
+}
+
+type Sector {
+    name: String!
+    code: String
 }
 
 type Role {
@@ -33,4 +43,8 @@ type LoginResult {
 type PublicUserInfo {
     username: String!
     sector: String!
+}
+
+type CreateUserResult {
+    password: String!
 }

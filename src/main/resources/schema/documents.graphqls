@@ -1,0 +1,53 @@
+extend type Query {
+    listDocumentsForDashboard: [DashboardDocuments!]!
+}
+
+extend type Mutation {
+    createDocument(input: DocumentInput!): Document!
+    sendDocument(sector: String): Response!
+    editDocument(input: DocumentInput!): Document!
+    requestDocument(id: Int!, reason: String!): Response!
+}
+
+enum DocumentTypeEnum {
+    FICHA
+    PRONTUARIO
+}
+
+type DashboardDocuments {
+    inventory: [Document!]!
+    inbox: [Document!]!
+    outbox: [Document!]!
+}
+
+type Document {
+    id: Int!
+    number: Int!
+    name: String!
+    type: DocumentTypeEnum!
+    observations: String
+    sector: Sector
+    history: [DocumentHistory!]!
+}
+type DocumentHistory {
+    action: DocumentActionEnum!
+    user: String!
+    sector: Sector!
+    dateTime: String!
+}
+
+input DocumentInput {
+    id: Int!
+    number: Int!
+    name: String!
+    type: DocumentTypeEnum!
+    observations: String
+}
+
+enum DocumentActionEnum{
+    CREATED
+    SENT
+    RECEIVED
+    REJECTED
+    REQUESTED
+}

@@ -16,7 +16,7 @@ import java.time.Instant
 
 @Repository
 class UserRepository(private val database: Database) {
-    fun listUsers(): List<User> {
+    fun list(): List<User> {
         return database
             .from(Users)
             .select()
@@ -31,6 +31,27 @@ class UserRepository(private val database: Database) {
             .where { (Users.login eq username) and (Users.sector eq sector) }
             .map(Users::createEntity)
             .firstOrNull()
+
+    fun findById(id: Long): User? =
+        database
+            .from(Users)
+            .select()
+            .where { (Users.id eq id) }
+            .map(Users::createEntity)
+            .firstOrNull()
+
+
+    fun saveRecord(record: User): User {
+        val id = database.insertAndGenerateKey(Users) {
+            set(it.login, record.login)
+            set(it.password, record.password)
+            set(it.sector, record.sector)
+            set(it.requirePasswordReset, record.requirePasswordReset)
+            set(it.createdAt, record.createdAt.epochSecond)
+        } as Number
+
+        return findById(id.toLong())!!
+    }
 }
 
 @JvmInline
@@ -44,9 +65,9 @@ data class User(
     val password: String?,
     val sector: String,
     val requirePasswordReset: Boolean,
-    val createdAt: Instant,
-    val modifiedAt: Instant?,
-    val deletedAt: Instant?,
+    val createdAt: Instant = Instant.now(),
+    val modifiedAt: Instant? = null,
+    val deletedAt: Instant? = null,
 ) : IBaseModel {
     override fun getId(): Any? = id
 

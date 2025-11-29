@@ -1,6 +1,7 @@
 CREATE TABLE `sector`
 (
     `name`             VARCHAR(32) NOT NULL,
+    `code`             VARCHAR(4) NULL DEFAULT NULL,
     `created_at`        bigint      NOT NULL,
     `modified_at`       bigint               DEFAULT NULL,
     `deleted_at`        bigint               DEFAULT NULL,
