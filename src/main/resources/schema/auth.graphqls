@@ -1,0 +1,36 @@
+extend type Query {
+    whoAmI: User
+    listUsers: [PublicUserInfo!]!
+}
+type Mutation {
+    login(sector: String!, username: String!, password: String!): LoginResult
+}
+
+type User {
+    id: String
+    roles: [Role!]!
+    isAuthenticated: Boolean!
+}
+
+type Role {
+    role: RoleEnum!
+    level: LevelEnum!
+}
+enum LevelEnum {
+    READ
+    WRITE
+}
+enum RoleEnum {
+    USER
+    ADMIN
+}
+
+type LoginResult {
+    token: String
+    success: Boolean!
+}
+
+type PublicUserInfo {
+    username: String!
+    sector: String!
+}

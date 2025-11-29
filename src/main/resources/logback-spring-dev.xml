@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration>
+
+<configuration scan="true">
+    <appender name="TEXT_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <charset>UTF-8</charset>
+            <Pattern>%d %-4relative [%thread] %-5level %logger{35} - %msg%n</Pattern>
+        </encoder>
+    </appender>
+
+    <logger name="GELF_UDP" level="DEBUG" additivity="false">
+        <appender-ref ref="TEXT_CONSOLE"/>
+    </logger>
+
+    <logger name="org.ktorm" level="DEBUG"/> <!-- Or TRACE for more detail -->
+
+    <root>
+        <level value="INFO"/>
+        <appender-ref ref="TEXT_CONSOLE"/>
+    </root>
+
+</configuration>

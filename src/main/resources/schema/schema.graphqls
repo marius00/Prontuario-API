@@ -1,0 +1,32 @@
+type Query {
+    # Root query, see the more specific .graphqls files
+}
+
+#type Mutation  {
+    # Root mutation, see the more specific .graphqls files
+#}
+extend type Query {
+    dummyQuery(input: DummyInput!): DummyOutput!
+}
+
+
+input DummyInput {
+    name: String! @NotBlank @Size(min: 3, max: 50)
+    sum: String
+}
+
+type DummyOutput {
+    name: String!
+    date: String!
+    sum: String
+}
+
+
+
+"Generic response"
+type Response {
+    success: Boolean!
+}
+
+
+

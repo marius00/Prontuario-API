@@ -1,0 +1,13 @@
+[*]
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+max_line_length = 50000
+ktlint_standard_no-wildcard-imports = disabled
+ktlint_standard_multiline-expression-wrapping = disabled
+
+[**/generated/**]
+generated_code = true
+ij_formatter_enabled = false
+ktlint = disabled
