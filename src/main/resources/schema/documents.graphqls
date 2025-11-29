@@ -5,6 +5,8 @@ extend type Query {
 extend type Mutation {
     createDocument(input: NewDocumentInput!): Document!
     sendDocument(documents: [ExistingDocumentInput!]!, sector: String!): Response!
+    acceptDocument(id: Int!): Document!
+    rejectDocument(id: Int!): Document!
     editDocument(input: ExistingDocumentInput!): Document!
     requestDocument(id: Int!, reason: String!): Response!
 }

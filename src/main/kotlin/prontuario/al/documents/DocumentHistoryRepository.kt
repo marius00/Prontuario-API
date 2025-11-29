@@ -1,4 +1,4 @@
-package prontuario.al.DocumentHistorys
+package prontuario.al.documents
 
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
