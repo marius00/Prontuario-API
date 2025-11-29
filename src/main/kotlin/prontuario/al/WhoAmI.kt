@@ -4,11 +4,18 @@ import com.netflix.graphql.dgs.DgsComponent
 import com.netflix.graphql.dgs.DgsQuery
 import org.springframework.security.core.context.SecurityContextHolder
 import prontuario.al.auth.AuthUtil
-import prontuario.al.auth.Level
 import prontuario.al.auth.RoleBasedGrantedAuthority
+import prontuario.al.auth.SectorRepository
+import prontuario.al.auth.UserRepository
+import prontuario.al.generated.types.Role
+import prontuario.al.generated.types.Sector
+import prontuario.al.generated.types.User
 
 @DgsComponent
-class WhoAmI {
+class WhoAmI(
+    private val userRepository: UserRepository,
+    private val sectorRepository: SectorRepository,
+    ) {
     @DgsQuery
     fun whoAmI(): User? {
         if ("anonymousUser" == SecurityContextHolder
@@ -16,28 +23,21 @@ class WhoAmI {
                 .authentication.principal
                 .toString()
         ) {
-            return User(null, emptyList(), null, null,false)
+            return User(null, null, null, emptyList(), false)
         }
+
+        val fromDb = userRepository.findById(AuthUtil.getUserId())
+        val sectorCode = sectorRepository.list().firstOrNull { it.name == fromDb?.sector }?.code
 
         return User(
             AuthUtil.getUserId().toString(),
-            RoleBasedGrantedAuthority.getAuthRoles().map { Role(it.getRole(), it.getLevel()) }.toList(),
             username = AuthUtil.getUsername(),
-            sector = "TODO",
+            sector = Sector(
+                name = fromDb?.sector ?: "Error",
+                code = sectorCode ?: "ERR"
+            ),
+            RoleBasedGrantedAuthority.getAuthRoles().map { Role(it.getRole(), it.getLevel()) }.toList(),
             SecurityContextHolder.getContext().authentication.isAuthenticated,
         )
     }
-
-    data class User(
-        val id: String?,
-        val roles: List<Role>,
-        val username: String?,
-        val sector: String?,
-        val isAuthenticated: Boolean,
-    )
-
-    data class Role(
-        val role: prontuario.al.auth.Role,
-        val level: Level,
-    )
 }

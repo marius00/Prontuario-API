@@ -87,6 +87,11 @@ tasks.generateJava {
     schemaPaths.add("$projectDir/src/main/resources/schema")
     packageName = "prontuario.al.generated"
     generateClient = true
+
+    typeMapping = mapOf(
+        "RoleEnum" to "prontuario.al.auth.Role",
+        "LevelEnum" to "prontuario.al.auth.Level",
+    ).toMutableMap()
 }
 tasks.test {
     useJUnitPlatform()

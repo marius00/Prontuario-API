@@ -9,7 +9,7 @@ import javax.security.sasl.AuthenticationException
  */
 class AuthUtil {
     companion object {
-        fun getUserId(): UInt {
+        fun getUserId(): Long {
             val authUser = SecurityContextHolder.getContext().authentication.principal as AuthUser?
             if (authUser != null) {
                 return authUser.userId

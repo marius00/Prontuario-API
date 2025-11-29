@@ -12,7 +12,7 @@ type Mutation {
 type User {
     id: String
     username: String
-    sector: String
+     sector: Sector
     roles: [Role!]!
     isAuthenticated: Boolean!
 }

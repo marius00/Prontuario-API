@@ -77,5 +77,5 @@ class TokenService {
     }
 
     fun getUsername(token: String): String = getAllClaims(token)["username"]?.toString() ?: throw Exception("Token is missing username")
-    fun getUserId(token: String): UInt = getAllClaims(token)["userId"]?.toString()?.toUInt() ?: throw Exception("Token is missing userId")
+    fun getUserId(token: String): Long = getAllClaims(token)["userId"]?.toString()?.toLong() ?: throw Exception("Token is missing userId")
 }

@@ -4,7 +4,7 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
 
 data class AuthUser(
-    val userId: UInt,
+    val userId: Long,
     val userName: String,
 ) {
 }
