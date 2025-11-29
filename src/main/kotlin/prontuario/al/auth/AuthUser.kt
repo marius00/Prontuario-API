@@ -2,10 +2,12 @@ package prontuario.al.auth
 
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
+import prontuario.al.generated.types.Sector
 
 data class AuthUser(
     val userId: Long,
     val userName: String,
+    val sector: Sector,
 ) {
 }
 

@@ -56,10 +56,13 @@ class AuthResolver(
 
         val found = userRepository.findUser(username, sector) ?: return LoginResult(null, false)
         if (found.isValid(password)) {
+            val sectorCode = sectorRepository.list().firstOrNull { it.name == found.sector }?.code ?: ""
             val token = tokenService.generate(
                 userId = found.id!!.value,
                 username = found.login,
                 roles = emptyMap(),
+                sector = found.sector,
+                sectorCode = sectorCode,
             )
 
             logger.info { "Login succeeded for $username" }

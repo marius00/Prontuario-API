@@ -30,7 +30,7 @@ class CorsTests {
             set("Access-Control-Request-Headers", "Content-Type")
         }
 
-        headers.setBearerAuth(tokenService.generate(1234u, "myUser", mapOf(Role.USER to WRITE)))
+        headers.setBearerAuth(tokenService.generate(1234, "myUser", "Sec", "UUU", mapOf(Role.USER to WRITE)))
         val entity = HttpEntity<String>(headers)
 
         val response: ResponseEntity<String> = restTemplate!!.exchange(
@@ -71,7 +71,7 @@ class CorsTests {
             set("Access-Control-Request-Method", "POST")
             set("Access-Control-Request-Headers", "Content-Type")
         }
-        headers.setBearerAuth(tokenService.generate(1234u, "myUser", mapOf(Role.USER to WRITE)))
+        headers.setBearerAuth(tokenService.generate(1234, "myUser", "Sec", "UUU", mapOf(Role.USER to WRITE)))
         val entity = HttpEntity<String>(headers)
 
         // Act
@@ -96,7 +96,7 @@ class CorsTests {
             set("Access-Control-Request-Method", "POST")
             set("Access-Control-Request-Headers", "Content-Type")
         }
-        headers.setBearerAuth(tokenService.generate(1234u, "myUser", mapOf(Role.USER to WRITE)))
+        headers.setBearerAuth(tokenService.generate(1234, "myUser", "Sec", "UUU", mapOf(Role.USER to WRITE)))
         val entity = HttpEntity<String>(headers)
 
         // Act

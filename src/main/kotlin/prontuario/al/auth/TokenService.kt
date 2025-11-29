@@ -17,6 +17,8 @@ class TokenService {
     fun generate(
         userId: Long,
         username: String,
+        sector: String,
+        sectorCode: String,
         roles: Map<Role, Level>,
     ): String {
         val secret = SecretKeySpec(environment?.getProperty("secrets.jwt")?.toByteArray(), "HmacSHA256")
@@ -33,6 +35,8 @@ class TokenService {
             .expiration(Date(System.currentTimeMillis() + 3600 * 24 * 60 * 60 * 1000))
             .add("userId", userId)
             .add("username", username)
+            .add("sector", sector)
+            .add("sectorCode", sectorCode)
             .add("roles", roles)
             .and()
             .signWith(secret)
@@ -77,5 +81,7 @@ class TokenService {
     }
 
     fun getUsername(token: String): String = getAllClaims(token)["username"]?.toString() ?: throw Exception("Token is missing username")
+    fun getSectorName(token: String): String = getAllClaims(token)["sector"]?.toString() ?: throw Exception("Token is missing sector")
+    fun getSectorCode(token: String): String = getAllClaims(token)["sectorCode"]?.toString() ?: throw Exception("Token is missing sectorCode")
     fun getUserId(token: String): Long = getAllClaims(token)["userId"]?.toString()?.toLong() ?: throw Exception("Token is missing userId")
 }

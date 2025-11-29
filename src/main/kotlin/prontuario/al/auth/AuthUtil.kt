@@ -2,6 +2,7 @@ package prontuario.al.auth
 
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.context.SecurityContextHolder
+import prontuario.al.generated.types.Sector
 import javax.security.sasl.AuthenticationException
 
 /**
@@ -22,6 +23,15 @@ class AuthUtil {
             val authUser = SecurityContextHolder.getContext().authentication.principal as AuthUser?
             if (authUser != null) {
                 return authUser.userName
+            }
+
+            throw AccessDeniedException("Invalid user principal")
+        }
+
+        fun getSector(): Sector {
+            val authUser = SecurityContextHolder.getContext().authentication.principal as AuthUser?
+            if (authUser != null) {
+                return authUser.sector
             }
 
             throw AccessDeniedException("Invalid user principal")

@@ -77,7 +77,7 @@ class ApplicationTests {
         headers.contentType = MediaType.APPLICATION_JSON
 
 
-        headers.setBearerAuth(tokenService.generate(1234u, "myUser", mapOf(Role.USER to WRITE)))
+        headers.setBearerAuth(tokenService.generate(1234, "myUser", "s", "code",mapOf(Role.USER to WRITE)))
         val body = """{"query":"query MyQuery {\n  whoAmI {\n    id\n    isAuthenticated\n    roles {\n      level\n      role\n    }\n  }\n}","operationName":"MyQuery"}"""
 
         val request = HttpEntity<String>(body, headers)

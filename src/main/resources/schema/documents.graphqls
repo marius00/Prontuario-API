@@ -3,9 +3,9 @@ extend type Query {
 }
 
 extend type Mutation {
-    createDocument(input: DocumentInput!): Document!
-    sendDocument(sector: String): Response!
-    editDocument(input: DocumentInput!): Document!
+    createDocument(input: NewDocumentInput!): Document!
+    sendDocument(documents: [ExistingDocumentInput!]!, sector: String!): Response!
+    editDocument(input: ExistingDocumentInput!): Document!
     requestDocument(id: Int!, reason: String!): Response!
 }
 
@@ -34,10 +34,19 @@ type DocumentHistory {
     user: String!
     sector: Sector!
     dateTime: String!
+    description: String!
 }
 
-input DocumentInput {
+input NewDocumentInput {
+    number: Int!
+    name: String!
+    type: DocumentTypeEnum!
+    observations: String
+}
+
+input ExistingDocumentInput {
     id: Int!
+
     number: Int!
     name: String!
     type: DocumentTypeEnum!

@@ -1,8 +1,5 @@
 package prontuario.al.auth
 
-import prontuario.al.auth.JwtAuthenticationFilter.Companion.createRoles
-import prontuario.al.logger.GraphqlLoggingFilter.Companion.logger
-import prontuario.al.logger.LoggingUtil
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -13,6 +10,9 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
+import prontuario.al.auth.JwtAuthenticationFilter.Companion.createRoles
+import prontuario.al.logger.GraphqlLoggingFilter.Companion.logger
+import prontuario.al.logger.LoggingUtil
 
 @Component
 class JwtAuthenticationFilter(
@@ -128,7 +128,14 @@ class TokenCachingService(
 
 
         return UsernamePasswordAuthenticationToken(
-            AuthUser(tokenService.getUserId(token), tokenService.getUsername(token)),
+            AuthUser(
+                userId = tokenService.getUserId(token),
+                userName = tokenService.getUsername(token),
+                sector = prontuario.al.generated.types.Sector(
+                    tokenService.getSectorName(token),
+                    tokenService.getSectorCode(token)
+                ),
+            ),
             null,
             roles,
         )
