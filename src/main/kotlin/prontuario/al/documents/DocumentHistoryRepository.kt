@@ -75,7 +75,7 @@ object DocumentHistorys : BaseTable<DocumentHistory>("document_history") {
     val sector = varchar("sector")
     val description = varchar("description")
     val createdAt = long("created_at")
-    val modifiedAt = long("updated_at")
+    val modifiedAt = long("modified_at")
     val deletedAt = long("deleted_at")
 
     override fun doCreateEntity(

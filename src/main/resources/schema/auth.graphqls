@@ -10,7 +10,7 @@ type Mutation {
     createSector(name: String!, code: String): Response!
     deactivateSector(name: String!): Response!
     deactivateUser(username: String!): Response!
-    resetOwnPassword: CreateUserResult!
+    resetOwnPassword(oldPassword: String!, newPassword: String!): CreateUserResult!
     resetPassword(username: String!): CreateUserResult!
 }
 

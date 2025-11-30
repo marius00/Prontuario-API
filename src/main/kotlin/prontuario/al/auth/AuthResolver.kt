@@ -197,23 +197,30 @@ class AuthResolver(
 
     @PreAuthorize("hasRole('ADMIN:WRITE')")
     @DgsMutation
-    fun resetOwnPassword(): CreateUserResult {
+    fun resetOwnPassword(
+        @InputArgument oldPassword: String,
+        @InputArgument newPassword: String,
+    ): CreateUserResult {
         val found = userRepository.findUser(AuthUtil.getUsername())
             ?: throw GraphqlException("Usuario não encontrado", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
 
-        val password = "tmp" + Random.nextInt()
+        if (!found.isValid(oldPassword)) {
+            throw GraphqlException("Senha atual incorreta", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.VALIDATION
+            )
+        }
+
         userRepository.update(
             User(
                 id = found.id,
                 login = found.login,
                 sector = found.sector,
-                password = Argon2Factory.create().hash(2, 65536, 1, password),
+                password = Argon2Factory.create().hash(2, 65536, 1, newPassword),
                 role = found.role,
-                requirePasswordReset = true,
+                requirePasswordReset = false,
             ),
         )
         logger.info { "Changed password for ${AuthUtil.getUsername()}" }
-        return CreateUserResult(found.id!!.value.toInt(), password)
+        return CreateUserResult(found.id!!.value.toInt(), "A sua senha foi alterada com sucesso")
     }
 }
 

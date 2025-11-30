@@ -65,7 +65,7 @@ object Sectors : BaseTable<Sector>("sector") {
     val name = varchar("name")
     val code = varchar("code")
     val createdAt = long("created_at")
-    val modifiedAt = long("updated_at")
+    val modifiedAt = long("modified_at")
     val deletedAt = long("deleted_at")
 
     override fun doCreateEntity(

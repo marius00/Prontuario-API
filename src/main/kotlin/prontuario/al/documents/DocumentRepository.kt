@@ -115,7 +115,7 @@ object Documents : BaseTable<Document>("document") {
     val userId = long("user_id")
     val type = enum<DocumentTypeEnum>("type")
     val createdAt = long("created_at")
-    val modifiedAt = long("updated_at")
+    val modifiedAt = long("modified_at")
     val deletedAt = long("deleted_at")
 
     override fun doCreateEntity(
@@ -125,7 +125,7 @@ object Documents : BaseTable<Document>("document") {
         id = DocumentId(row.getOrFail(id)),
         name = row.getOrFail(name),
         number = row.getOrFail(number),
-        observations = row.getOrFail(observations),
+        observations = row[observations],
         sector = Sector(row.getOrFail(sector), null),
         type = row.getOrFail(type),
         createdBy = UserId(row.getOrFail(userId)),

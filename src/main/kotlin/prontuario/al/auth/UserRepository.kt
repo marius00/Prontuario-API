@@ -116,7 +116,7 @@ object Users : BaseTable<User>("user") {
     val role = enum<RoleEnum>("role")
     val requirePasswordReset = boolean("require_pwd_reset")
     val createdAt = long("created_at")
-    val modifiedAt = long("updated_at")
+    val modifiedAt = long("modified_at")
     val deletedAt = long("deleted_at")
 
     override fun doCreateEntity(

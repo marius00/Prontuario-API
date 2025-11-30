@@ -227,6 +227,7 @@ class DocumentResolver(
             .toList()
 
         val inventory = documentRepository.list(AuthUtil.getSector()).map { it -> toGraphqlType(it) }
+            .filterNot { it in outbox }
 
         return DashboardDocuments(
             inventory = inventory,

@@ -12,6 +12,10 @@ CREATE TABLE `document_movement`
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_danish_ci;
 
 
+INSERT INTO document_movement (document_id, user_id, from_sector, to_sector) VALUES
+(1, 1, 'Administração', 'Outro Setor'),
+(2, 2, 'Outro Setor', 'Administração');
+
 
 -- Sent to department
 -- Sent by department
