@@ -6,8 +6,8 @@ import org.ktorm.schema.BaseTable
 import org.ktorm.schema.long
 import org.ktorm.schema.varchar
 import org.springframework.stereotype.Repository
+import prontuario.al.auth.UserId
 import prontuario.al.database.IBaseModel
-import prontuario.al.documents.DocumentMovements.userId
 import prontuario.al.ktorm.getOrFail
 
 @Repository
@@ -20,11 +20,11 @@ class DocumentMovementRepository(private val database: Database) {
             .toList()
     }
 
-    fun list(userId: Long): List<DocumentMovement> {
+    fun listToReceive(sector: String): List<DocumentMovement> {
         return database
             .from(DocumentMovements)
             .select()
-            .where { DocumentMovements.userId.eq(userId) }
+            .where { DocumentMovements.toSector.eq(sector) }
             .map(DocumentMovements::createEntity)
             .toList()
     }
@@ -47,7 +47,7 @@ class DocumentMovementRepository(private val database: Database) {
             set(it.documentId, record.documentId)
             set(it.fromSector, record.fromSector)
             set(it.toSector, record.toSector)
-            set(it.userId, record.userId)
+            set(it.userId, record.userId.value)
         } as Number
 
         return findById(id.toLong())!!
@@ -56,7 +56,7 @@ class DocumentMovementRepository(private val database: Database) {
 
 data class DocumentMovement(
     val documentId: Long?,
-    val userId: Long,
+    val userId: UserId,
     val fromSector: String,
     val toSector: String,
 ) : IBaseModel {
@@ -74,7 +74,7 @@ object DocumentMovements : BaseTable<DocumentMovement>("document_history") {
         withReferences: Boolean,
     ) = DocumentMovement(
         documentId = row.getOrFail(documentId),
-        userId = row.getOrFail(userId),
+        userId = UserId(row.getOrFail(userId)),
         fromSector = row.getOrFail(fromSector),
         toSector = row.getOrFail(toSector),
     )

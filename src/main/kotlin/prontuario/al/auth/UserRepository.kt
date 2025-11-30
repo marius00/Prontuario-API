@@ -32,11 +32,11 @@ class UserRepository(private val database: Database) {
             .map(Users::createEntity)
             .firstOrNull()
 
-    fun findById(id: Long): User? =
+    fun findById(id: UserId): User? =
         database
             .from(Users)
             .select()
-            .where { (Users.id eq id) }
+            .where { (Users.id eq id.value) }
             .map(Users::createEntity)
             .firstOrNull()
 
@@ -50,7 +50,7 @@ class UserRepository(private val database: Database) {
             set(it.createdAt, record.createdAt.epochSecond)
         } as Number
 
-        return findById(id.toLong())!!
+        return findById(UserId(id.toLong()))!!
     }
 }
 

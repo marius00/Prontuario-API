@@ -10,10 +10,10 @@ import javax.security.sasl.AuthenticationException
  */
 class AuthUtil {
     companion object {
-        fun getUserId(): Long {
+        fun getUserId(): UserId {
             val authUser = SecurityContextHolder.getContext().authentication.principal as AuthUser?
             if (authUser != null) {
-                return authUser.userId
+                return UserId(authUser.userId)
             }
 
             throw AccessDeniedException("Invalid user principal")

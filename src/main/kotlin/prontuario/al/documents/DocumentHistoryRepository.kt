@@ -23,7 +23,7 @@ class DocumentHistoryRepository(private val database: Database) {
             .toList()
     }
 
-    fun findById(id: Long): DocumentHistory? =
+    private fun findById(id: Long): DocumentHistory? =
         database
             .from(DocumentHistorys)
             .select()
@@ -33,7 +33,7 @@ class DocumentHistoryRepository(private val database: Database) {
 
     fun saveRecord(record: DocumentHistory): DocumentHistory {
         val id = database.insertAndGenerateKey(DocumentHistorys) {
-            set(it.documentId, record.documentId)
+            set(it.documentId, record.documentId.value)
             set(it.action, record.action)
             set(it.sector, record.sector)
             set(it.description, record.description)
@@ -55,7 +55,7 @@ enum class DocumentHistoryTypeEnum {
 }
 data class DocumentHistory(
     val id: Long?,
-    val documentId: Long,
+    val documentId: DocumentId,
     val action: DocumentHistoryTypeEnum,
     val sector: String,
     val description: String?,
@@ -82,7 +82,7 @@ object DocumentHistorys : BaseTable<DocumentHistory>("document_history") {
     ) = DocumentHistory(
         id = row.getOrFail(id),
         action = row.getOrFail(action),
-        documentId = row.getOrFail(documentId),
+        documentId = DocumentId(row.getOrFail(documentId)),
         description = row.getOrFail(description),
         sector = row.getOrFail(sector),
         createdAt = row.getDateOrFail(createdAt),

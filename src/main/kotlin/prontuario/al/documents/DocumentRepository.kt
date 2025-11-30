@@ -7,6 +7,7 @@ import org.ktorm.schema.enum
 import org.ktorm.schema.long
 import org.ktorm.schema.varchar
 import org.springframework.stereotype.Repository
+import prontuario.al.auth.UserId
 import prontuario.al.database.IBaseModel
 import prontuario.al.generated.types.DocumentTypeEnum
 import prontuario.al.generated.types.Sector
@@ -25,13 +26,29 @@ class DocumentRepository(private val database: Database) {
             .toList()
     }
 
-    fun findById(id: Long): Document? =
+    fun findById(id: DocumentId): Document? =
         database
             .from(Documents)
             .select()
-            .where { (Documents.id eq id) }
+            .where { (Documents.id eq id.value) }
             .map(Documents::createEntity)
             .firstOrNull()
+
+    fun update(record: Document): Document {
+        database.update(Documents) {
+            set(it.number, record.number)
+            set(it.name, record.name)
+            set(it.observations, record.observations)
+            set(it.type, record.type)
+            set(it.sector, record.sector.name)
+            set(it.modifiedAt, Instant.now().epochSecond)
+            where {
+                it.id eq record.id!!.value
+            }
+        }
+
+        return findById(record.id!!)!!
+    }
 
     fun saveRecord(record: Document): Document {
         val id = database.insertAndGenerateKey(Documents) {
@@ -43,17 +60,24 @@ class DocumentRepository(private val database: Database) {
             set(it.createdAt, record.createdAt.epochSecond)
         } as Number
 
-        return findById(id.toLong())!!
+        return findById(DocumentId(id.toLong()))!!
     }
 }
 
+@JvmInline
+value class DocumentId(
+    val value: Long,
+)
+
+
 data class Document(
-    val id: Long?,
+    val id: DocumentId?,
     val number: String,
     val name: String,
     val observations: String?,
     val type: DocumentTypeEnum,
-    val sector: Sector,
+    var sector: Sector,
+    var createdBy: UserId,
     val createdAt: Instant = Instant.now(),
     val modifiedAt: Instant? = null,
     val deletedAt: Instant? = null,
@@ -67,6 +91,7 @@ object Documents : BaseTable<Document>("document") {
     val name = varchar("name")
     val observations = varchar("observations")
     val sector = varchar("sector")
+    val userId = long("user_id")
     val type = enum<DocumentTypeEnum>("type")
     val createdAt = long("created_at")
     val modifiedAt = long("updated_at")
@@ -76,12 +101,13 @@ object Documents : BaseTable<Document>("document") {
         row: QueryRowSet,
         withReferences: Boolean,
     ) = Document(
-        id = row.getOrFail(id),
+        id = DocumentId(row.getOrFail(id)),
         name = row.getOrFail(name),
         number = row.getOrFail(number),
         observations = row.getOrFail(observations),
         sector = Sector(row.getOrFail(sector), null),
         type = row.getOrFail(type),
+        createdBy = UserId(row.getOrFail(userId)),
         createdAt = row.getDateOrFail(createdAt),
         modifiedAt = row.getDate(modifiedAt),
         deletedAt = row.getDate(deletedAt),

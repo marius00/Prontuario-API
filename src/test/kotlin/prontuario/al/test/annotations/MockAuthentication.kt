@@ -9,6 +9,7 @@ import org.springframework.security.test.context.support.WithSecurityContextFact
 import prontuario.al.auth.AuthUser
 import prontuario.al.auth.JwtAuthenticationFilter
 import prontuario.al.auth.Role
+import prontuario.al.generated.types.Sector
 
 
 @Retention(AnnotationRetention.RUNTIME)
@@ -24,7 +25,7 @@ annotation class MockAuthentication(
 class WithMockCustomUserSecurityContextFactory : WithSecurityContextFactory<MockAuthentication> {
     override fun createSecurityContext(input: MockAuthentication): SecurityContext {
         val context = SecurityContextHolder.createEmptyContext()
-        val principal = AuthUser(userName = input.username, userId = 123u)
+        val principal = AuthUser(userName = input.username, userId = 123, sector = Sector(name = "Test", code = "TST"))
 
         var adminLevel = ""
 
