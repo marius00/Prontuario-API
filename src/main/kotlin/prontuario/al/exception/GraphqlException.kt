@@ -1,9 +1,9 @@
 package prontuario.al.exception
 
-import prontuario.al.logger.GraphqlLoggingFilter.Companion.logger
 import graphql.ErrorClassification
 import graphql.GraphQLError
 import graphql.GraphqlErrorBuilder
+import prontuario.al.logger.GraphqlLoggingFilter.Companion.logger
 
 data class GraphqlException(
     override val message: String,
@@ -34,4 +34,5 @@ enum class GraphqlExceptionErrorCode {
     VALIDATION,
     UNAUTHORIZED,
     INTERNAL_SERVER_ERROR,
+    NOT_FOUND,
 }

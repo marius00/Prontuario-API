@@ -8,9 +8,8 @@ import org.springframework.security.test.context.support.WithSecurityContext
 import org.springframework.security.test.context.support.WithSecurityContextFactory
 import prontuario.al.auth.AuthUser
 import prontuario.al.auth.JwtAuthenticationFilter
-import prontuario.al.auth.Role
+import prontuario.al.auth.RoleEnum
 import prontuario.al.generated.types.Sector
-
 
 @Retention(AnnotationRetention.RUNTIME)
 @WithSecurityContext(factory = WithMockCustomUserSecurityContextFactory::class)
@@ -37,14 +36,14 @@ class WithMockCustomUserSecurityContextFactory : WithSecurityContextFactory<Mock
                 val key = parts[0]
                 val value = parts[1]
                 roleMap[key] = value
-                if (key == Role.ADMIN.name) {
+                if (key == RoleEnum.ADMIN.name) {
                     adminLevel = value
                 }
             }
         }
 
         if (adminLevel.isNotEmpty()) {
-            for (role in Role.entries) {
+            for (role in RoleEnum.entries) {
                 if (!roleMap.containsKey(role.name)) {
                     roleMap[role.name] = adminLevel
                 }

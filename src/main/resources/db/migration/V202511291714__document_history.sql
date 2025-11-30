@@ -10,5 +10,5 @@ CREATE TABLE `document_history`
     `deleted_at`  bigint DEFAULT NULL,
     PRIMARY KEY (`id`),
     FOREIGN KEY (document_id) REFERENCES document (id),
-    FOREIGN KEY (sector) REFERENCES sector (name),
+    FOREIGN KEY (sector) REFERENCES sector (name)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_danish_ci;

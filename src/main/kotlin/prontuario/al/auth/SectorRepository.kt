@@ -14,19 +14,39 @@ import prontuario.al.ktorm.getOrFail
 import java.time.Instant
 
 @Repository
-class SectorRepository(private val database: Database) {
-    fun list(): List<Sector> {
-        return database
+class SectorRepository(
+    private val database: Database,
+) {
+    fun list(): List<Sector> =
+        database
             .from(Sectors)
             .select()
+            .where { Sectors.deletedAt.isNull() }
             .map(Sectors::createEntity)
             .toList()
-    }
 
     fun saveRecord(record: Sector) {
-        val id = database.insertAndGenerateKey(Sectors) {
+        val id = database.insert(Sectors) {
             set(it.name, record.name)
             set(it.createdAt, record.createdAt.epochSecond)
+        }
+    }
+
+    fun reActivate(record: prontuario.al.auth.Sector) {
+        database.update(Sectors) {
+            set(it.deletedAt, null)
+            where {
+                it.name eq record.name
+            }
+        }
+    }
+
+    fun deactivate(record: prontuario.al.auth.Sector) {
+        database.update(Sectors) {
+            set(it.deletedAt, Instant.now().epochSecond)
+            where {
+                it.name eq record.name
+            }
         }
     }
 }

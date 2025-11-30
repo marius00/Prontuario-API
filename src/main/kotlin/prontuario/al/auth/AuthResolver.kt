@@ -11,16 +11,12 @@ import prontuario.al.auth.Users.sector
 import prontuario.al.exception.CustomErrorClassification
 import prontuario.al.exception.GraphqlException
 import prontuario.al.exception.GraphqlExceptionErrorCode
-import prontuario.al.generated.types.CreateUserResult
-import prontuario.al.generated.types.LoginResult
-import prontuario.al.generated.types.PublicUserInfo
-import prontuario.al.generated.types.Response
+import prontuario.al.generated.types.*
 import prontuario.al.logger.GraphqlLoggingFilter.Companion.logger
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
-
 
 @DgsComponent
 class AuthResolver(
@@ -31,16 +27,38 @@ class AuthResolver(
 ) {
     @PreAuthorize("true")
     @DgsQuery
-    fun listUsers(): List<PublicUserInfo> {
-        return userRepository.list().map { PublicUserInfo(it.login, it.sector) }
-    }
+    fun listUsers(): List<PublicUserInfo> =
+        userRepository.list().map {
+            PublicUserInfo(
+                id = it.id!!.value.toInt(),
+                username = it.login,
+                sector = it.sector,
+            )
+        }
 
     @PreAuthorize("hasRole('ADMIN:READ')")
     @DgsQuery
-    fun listSectors(): List<prontuario.al.generated.types.Sector> {
-        return sectorRepository.list().map { prontuario.al.generated.types.Sector(it.name, it.code) }
-    }
+    fun listSectors(): List<prontuario.al.generated.types.Sector> =
+        sectorRepository.list().map {
+            prontuario.al.generated.types
+                .Sector(it.name, it.code)
+        }
 
+    @PreAuthorize("hasRole('ADMIN:READ')")
+    @DgsQuery
+    fun listUsersDetailed(): List<prontuario.al.generated.types.User> =
+        userRepository.list().map {
+            prontuario.al.generated.types.User(
+                id = it.id!!.value.toString(),
+                username = it.login,
+                sector = prontuario.al.generated.types.Sector(
+                    name = it.sector,
+                    code = sectorRepository.list().firstOrNull { sector -> sector.name == it.sector }?.code,
+                ),
+                roles = RoleBasedGrantedAuthority.getAuthRoles().map { m -> Role(m.getRole(), m.getLevel()) }.toList(),
+                isAuthenticated = false,
+            )
+        }
 
     @PreAuthorize("true")
     @DgsMutation
@@ -60,7 +78,7 @@ class AuthResolver(
             val token = tokenService.generate(
                 userId = found.id!!.value,
                 username = found.login,
-                roles = emptyMap(),
+                roles = mapOf(found.role to LevelEnum.WRITE),
                 sector = found.sector,
                 sectorCode = sectorCode,
             )
@@ -73,39 +91,52 @@ class AuthResolver(
         }
     }
 
-
     @PreAuthorize("hasRole('ADMIN:WRITE')")
     @DgsMutation
-    fun createUser(@InputArgument username: String, @InputArgument sector: String): CreateUserResult {
+    fun createUser(
+        @InputArgument username: String,
+        @InputArgument sector: String,
+        @InputArgument role: RoleEnum,
+    ): CreateUserResult {
         val found = userRepository.findUser(username, sector)
         if (found != null) {
             logger.warn { "Attempted to create user $username for sector $sector, but already exists" }
             throw GraphqlException("Usuario já existe", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.ALREADY_EXISTS)
         }
 
-        val password = "tmp" + Random.nextInt()
+        val foundForOtherSector = userRepository.findUser(username, sector)
+        val password = if (foundForOtherSector == null) "tmp" + Random.nextInt() else "A mesma senha que antes"
+        val passwordHash = if (foundForOtherSector != null) foundForOtherSector.password else Argon2Factory.create().hash(2, 65536, 1, password)
 
-        userRepository.saveRecord(
+        val user = userRepository.saveRecord(
             User(
                 id = null,
                 login = username,
                 sector = sector,
-                password = Argon2Factory.create().hash(2, 65536, 1, password),
-                requirePasswordReset = true,
-            )
+                password = passwordHash,
+                role = role,
+                requirePasswordReset = foundForOtherSector == null,
+            ),
         )
 
         logger.info { "User $username for sector $sector created successfully" }
 
-        return CreateUserResult(password)
+        return CreateUserResult(user.id!!.value.toInt(), password)
     }
-
 
     @PreAuthorize("hasRole('ADMIN:WRITE')")
     @DgsMutation
-    fun createSector(@InputArgument name: String, @InputArgument code: String?): Response {
-        val found = sectorRepository.list().any { it.name == name }
-        if (found) {
+    fun createSector(
+        @InputArgument name: String,
+        @InputArgument code: String?,
+    ): Response {
+        val found = sectorRepository.list().firstOrNull { it.name == name }
+        if (found != null) {
+            if (found.deletedAt != null) {
+                logger.warn { "Sector $sector already exists but has been deactivated, reactivating" }
+                sectorRepository.reActivate(found)
+                return Response(true)
+            }
             logger.warn { "Attempted to create sector $sector, but already exists" }
             throw GraphqlException("Setor já existe", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.ALREADY_EXISTS)
         }
@@ -114,10 +145,80 @@ class AuthResolver(
         sectorRepository.saveRecord(Sector(name, code))
         return Response(true)
     }
+
+    @PreAuthorize("hasRole('ADMIN:WRITE')")
+    @DgsMutation
+    fun deactivateSector(
+        @InputArgument name: String,
+    ): Response {
+        val found = sectorRepository.list().firstOrNull { it.name == name }
+            ?: throw GraphqlException("Setor não encontrado", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
+
+        sectorRepository.deactivate(found)
+        logger.info { "Sector $name deactivated successfully" }
+        return Response(true)
+    }
+
+    @PreAuthorize("hasRole('ADMIN:WRITE')")
+    @DgsMutation
+    fun deactivateUser(
+        @InputArgument username: String,
+    ): Response {
+        val found = userRepository.findUser(username)
+            ?: throw GraphqlException("Usuario não encontrado", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
+
+        userRepository.deactivate(found)
+        logger.info { "User $username deactivated successfully" }
+        return Response(true)
+    }
+
+    @PreAuthorize("hasRole('ADMIN:WRITE')")
+    @DgsMutation
+    fun resetPassword(
+        @InputArgument username: String,
+    ): CreateUserResult {
+        val found = userRepository.findUser(username)
+            ?: throw GraphqlException("Usuario não encontrado", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
+
+        val password = "tmp" + Random.nextInt()
+        userRepository.update(
+            User(
+                id = found.id,
+                login = found.login,
+                sector = found.sector,
+                password = Argon2Factory.create().hash(2, 65536, 1, password),
+                role = found.role,
+                requirePasswordReset = true,
+            ),
+        )
+        logger.info { "Changed password for $username" }
+        return CreateUserResult(found.id!!.value.toInt(), password)
+    }
+
+    @PreAuthorize("hasRole('ADMIN:WRITE')")
+    @DgsMutation
+    fun resetOwnPassword(): CreateUserResult {
+        val found = userRepository.findUser(AuthUtil.getUsername())
+            ?: throw GraphqlException("Usuario não encontrado", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
+
+        val password = "tmp" + Random.nextInt()
+        userRepository.update(
+            User(
+                id = found.id,
+                login = found.login,
+                sector = found.sector,
+                password = Argon2Factory.create().hash(2, 65536, 1, password),
+                role = found.role,
+                requirePasswordReset = true,
+            ),
+        )
+        logger.info { "Changed password for ${AuthUtil.getUsername()}" }
+        return CreateUserResult(found.id!!.value.toInt(), password)
+    }
 }
 
 @Service
-class RateLimitingService() {
+class RateLimitingService {
     private val limit = 8
     private val timeWindowMillis = 30 * 1000
     private val requestCounts: ConcurrentMap<String?, AtomicInteger> = ConcurrentHashMap<String?, AtomicInteger>()
@@ -140,5 +241,3 @@ class RateLimitingService() {
         }
     }
 }
-
-

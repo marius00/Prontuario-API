@@ -8,23 +8,22 @@ data class AuthUser(
     val userId: Long,
     val userName: String,
     val sector: Sector,
-) {
-}
+)
 
 // Will need to see what our needs are, figure we'll have 2-3 different auth tokens.
 // API tokens vs User web token
-enum class Role {
+enum class RoleEnum {
     USER,
     ADMIN,
 }
 
-enum class Level {
+enum class LevelEnum {
     READ,
     WRITE,
     ;
 
     companion object {
-        fun toList(value: Level): Array<Level> =
+        fun toList(value: LevelEnum): Array<LevelEnum> =
             when (value) {
                 READ -> arrayOf(READ)
                 WRITE -> arrayOf(READ, WRITE)
@@ -33,14 +32,14 @@ enum class Level {
 }
 
 class RoleBasedGrantedAuthority(
-    private val role: Role,
-    private val level: Level,
+    private val role: RoleEnum,
+    private val level: LevelEnum,
 ) : GrantedAuthority {
     override fun getAuthority(): String = "ROLE_$role:$level"
 
-    fun getRole(): Role = role
+    fun getRole(): RoleEnum = role
 
-    fun getLevel(): Level = level
+    fun getLevel(): LevelEnum = level
 
     companion object {
         fun getAuthRoles(): List<RoleBasedGrantedAuthority> {

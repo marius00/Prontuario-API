@@ -1,5 +1,5 @@
 extend type Query {
-    listDocumentsForDashboard: [DashboardDocuments!]!
+    listDocumentsForDashboard: DashboardDocuments!
 }
 
 extend type Mutation {

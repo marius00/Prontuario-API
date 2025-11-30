@@ -4,7 +4,6 @@ import org.ktorm.database.Database
 import org.ktorm.database.SpringManagedTransactionManager
 import org.ktorm.database.detectDialectImplementation
 import org.ktorm.logging.detectLoggerImplementation
-import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -24,11 +23,8 @@ class DatabaseConfiguration {
             .initializeDataSourceBuilder()
             .build()
 
-
     @Bean
-    fun database(
-        dataSource: DataSource,
-    ): Database {
+    fun database(dataSource: DataSource): Database {
         val translator = SQLErrorCodeSQLExceptionTranslator(dataSource)
 
         return Database(

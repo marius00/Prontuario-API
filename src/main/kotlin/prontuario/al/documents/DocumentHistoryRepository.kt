@@ -14,14 +14,15 @@ import prontuario.al.ktorm.getOrFail
 import java.time.Instant
 
 @Repository
-class DocumentHistoryRepository(private val database: Database) {
-    fun list(): List<DocumentHistory> {
-        return database
+class DocumentHistoryRepository(
+    private val database: Database,
+) {
+    fun list(): List<DocumentHistory> =
+        database
             .from(DocumentHistorys)
             .select()
             .map(DocumentHistorys::createEntity)
             .toList()
-    }
 
     private fun findById(id: Long): DocumentHistory? =
         database
@@ -53,6 +54,7 @@ enum class DocumentHistoryTypeEnum {
     REQUESTED,
     DELETED,
 }
+
 data class DocumentHistory(
     val id: Long?,
     val documentId: DocumentId,

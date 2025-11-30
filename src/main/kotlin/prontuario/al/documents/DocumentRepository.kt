@@ -17,14 +17,36 @@ import prontuario.al.ktorm.getOrFail
 import java.time.Instant
 
 @Repository
-class DocumentRepository(private val database: Database) {
-    fun list(): List<Document> {
-        return database
+class DocumentRepository(
+    private val database: Database,
+) {
+    fun list(): List<Document> =
+        database
             .from(Documents)
             .select()
             .map(Documents::createEntity)
             .toList()
+
+    fun list(ids: List<DocumentId>): List<Document> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+
+        return database
+            .from(Documents)
+            .select()
+            .where { Documents.id.inList(ids.map { it.value }) }
+            .map(Documents::createEntity)
+            .toList()
     }
+
+    fun list(sector: Sector): List<Document> =
+        database
+            .from(Documents)
+            .select()
+            .where { Documents.sector eq sector.name }
+            .map(Documents::createEntity)
+            .toList()
 
     fun findById(id: DocumentId): Document? =
         database
@@ -68,7 +90,6 @@ class DocumentRepository(private val database: Database) {
 value class DocumentId(
     val value: Long,
 )
-
 
 data class Document(
     val id: DocumentId?,

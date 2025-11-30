@@ -8,30 +8,39 @@ import org.ktorm.schema.varchar
 import org.springframework.stereotype.Repository
 import prontuario.al.auth.UserId
 import prontuario.al.database.IBaseModel
+import prontuario.al.generated.types.Sector
 import prontuario.al.ktorm.getOrFail
 
 @Repository
-class DocumentMovementRepository(private val database: Database) {
-    fun list(): List<DocumentMovement> {
-        return database
+class DocumentMovementRepository(
+    private val database: Database,
+) {
+    fun list(): List<DocumentMovement> =
+        database
             .from(DocumentMovements)
             .select()
             .map(DocumentMovements::createEntity)
             .toList()
-    }
 
-    fun listToReceive(sector: String): List<DocumentMovement> {
-        return database
+    fun listForSourceSector(sector: Sector): List<DocumentMovement> =
+        database
             .from(DocumentMovements)
             .select()
-            .where { DocumentMovements.toSector.eq(sector) }
+            .where { DocumentMovements.fromSector.eq(sector.name) }
             .map(DocumentMovements::createEntity)
             .toList()
-    }
+
+    fun listForTargetSector(sector: Sector): List<DocumentMovement> =
+        database
+            .from(DocumentMovements)
+            .select()
+            .where { DocumentMovements.toSector.eq(sector.name) }
+            .map(DocumentMovements::createEntity)
+            .toList()
 
     fun delete(movement: DocumentMovement) {
         database
-            .delete(DocumentMovements) { DocumentMovements.documentId eq movement.documentId!! }
+            .delete(DocumentMovements) { DocumentMovements.documentId eq movement.documentId!!.value }
     }
 
     fun findById(id: Long): DocumentMovement? =
@@ -44,7 +53,7 @@ class DocumentMovementRepository(private val database: Database) {
 
     fun saveRecord(record: DocumentMovement): DocumentMovement {
         val id = database.insertAndGenerateKey(DocumentMovements) {
-            set(it.documentId, record.documentId)
+            set(it.documentId, record.documentId!!.value)
             set(it.fromSector, record.fromSector)
             set(it.toSector, record.toSector)
             set(it.userId, record.userId.value)
@@ -55,7 +64,7 @@ class DocumentMovementRepository(private val database: Database) {
 }
 
 data class DocumentMovement(
-    val documentId: Long?,
+    val documentId: DocumentId?,
     val userId: UserId,
     val fromSector: String,
     val toSector: String,
@@ -63,7 +72,7 @@ data class DocumentMovement(
     override fun getId(): Any? = documentId
 }
 
-object DocumentMovements : BaseTable<DocumentMovement>("document_history") {
+object DocumentMovements : BaseTable<DocumentMovement>("document_movement") {
     val documentId = long("document_id").primaryKey()
     val userId = long("user_id")
     val fromSector = varchar("from_sector")
@@ -73,7 +82,7 @@ object DocumentMovements : BaseTable<DocumentMovement>("document_history") {
         row: QueryRowSet,
         withReferences: Boolean,
     ) = DocumentMovement(
-        documentId = row.getOrFail(documentId),
+        documentId = DocumentId(row.getOrFail(documentId)),
         userId = UserId(row.getOrFail(userId)),
         fromSector = row.getOrFail(fromSector),
         toSector = row.getOrFail(toSector),

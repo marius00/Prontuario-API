@@ -1,21 +1,28 @@
 type Query {
     whoAmI: User
     listUsers: [PublicUserInfo!]!
+    listUsersDetailed: [User!]!
     listSectors: [Sector!]!
 }
 type Mutation {
     login(sector: String!, username: String!, password: String!): LoginResult
-    createUser(sector: String!, username: String!): CreateUserResult
+    createUser(sector: String!, username: String!, role: RoleEnum!): CreateUserResult
     createSector(name: String!, code: String): Response!
+    deactivateSector(name: String!): Response!
+    deactivateUser(username: String!): Response!
+    resetOwnPassword: CreateUserResult!
+    resetPassword(username: String!): CreateUserResult!
 }
 
 type User {
     id: String
     username: String
-     sector: Sector
+    sector: Sector
     roles: [Role!]!
     isAuthenticated: Boolean!
 }
+
+
 
 type Sector {
     name: String!
@@ -41,10 +48,12 @@ type LoginResult {
 }
 
 type PublicUserInfo {
+    id: Int!
     username: String!
     sector: String!
 }
 
 type CreateUserResult {
+    id: Int!
     password: String!
 }

@@ -19,7 +19,7 @@ class TokenService {
         username: String,
         sector: String,
         sectorCode: String,
-        roles: Map<Role, Level>,
+        roles: Map<RoleEnum, LevelEnum>,
     ): String {
         val secret = SecretKeySpec(environment?.getProperty("secrets.jwt")?.toByteArray(), "HmacSHA256")
         return Jwts
@@ -81,7 +81,10 @@ class TokenService {
     }
 
     fun getUsername(token: String): String = getAllClaims(token)["username"]?.toString() ?: throw Exception("Token is missing username")
+
     fun getSectorName(token: String): String = getAllClaims(token)["sector"]?.toString() ?: throw Exception("Token is missing sector")
+
     fun getSectorCode(token: String): String = getAllClaims(token)["sectorCode"]?.toString() ?: throw Exception("Token is missing sectorCode")
+
     fun getUserId(token: String): Long = getAllClaims(token)["userId"]?.toString()?.toLong() ?: throw Exception("Token is missing userId")
 }

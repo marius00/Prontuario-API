@@ -15,7 +15,7 @@ import prontuario.al.generated.types.User
 class WhoAmI(
     private val userRepository: UserRepository,
     private val sectorRepository: SectorRepository,
-    ) {
+) {
     @DgsQuery
     fun whoAmI(): User? {
         if ("anonymousUser" == SecurityContextHolder
@@ -30,11 +30,11 @@ class WhoAmI(
         val sectorCode = sectorRepository.list().firstOrNull { it.name == fromDb?.sector }?.code
 
         return User(
-            AuthUtil.getUserId().toString(),
+            AuthUtil.getUserId().value.toString(),
             username = AuthUtil.getUsername(),
             sector = Sector(
                 name = fromDb?.sector ?: "Error",
-                code = sectorCode ?: "ERR"
+                code = sectorCode ?: "ERR",
             ),
             RoleBasedGrantedAuthority.getAuthRoles().map { Role(it.getRole(), it.getLevel()) }.toList(),
             SecurityContextHolder.getContext().authentication.isAuthenticated,

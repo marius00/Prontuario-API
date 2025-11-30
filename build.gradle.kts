@@ -89,8 +89,8 @@ tasks.generateJava {
     generateClient = true
 
     typeMapping = mapOf(
-        "RoleEnum" to "prontuario.al.auth.Role",
-        "LevelEnum" to "prontuario.al.auth.Level",
+        "RoleEnum" to "prontuario.al.auth.RoleEnum",
+        "LevelEnum" to "prontuario.al.auth.LevelEnum",
     ).toMutableMap()
 }
 tasks.test {

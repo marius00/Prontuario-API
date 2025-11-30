@@ -39,10 +39,10 @@ class JwtAuthenticationFilter(
             // Isn't this always? Since we don't use sessions?
             val isNotLoggedIn =
                 SecurityContextHolder.getContext().authentication == null ||
-                        "anonymousUser" == SecurityContextHolder
-                    .getContext()
-                    .authentication.principal
-                    .toString()
+                    "anonymousUser" == SecurityContextHolder
+                        .getContext()
+                        .authentication.principal
+                        .toString()
             if (isNotLoggedIn) {
                 val jwtToken = authHeader!!.extractTokenValue()
                 val token = myCachingService.parseToken(jwtToken)
@@ -62,22 +62,22 @@ class JwtAuthenticationFilter(
         inline fun <reified T : Enum<T>> enumValueOfOrNull(name: String): T? = runCatching { enumValueOf<T>(name) }.getOrNull()
 
         fun createRoles(roleMap: HashMap<String, String>): List<RoleBasedGrantedAuthority> {
-            if (roleMap.containsKey(Role.ADMIN.name)) {
-                for (role in Role.entries) {
-                    roleMap[role.name] = roleMap[Role.ADMIN.name]!!
+            if (roleMap.containsKey(RoleEnum.ADMIN.name)) {
+                for (role in RoleEnum.entries) {
+                    roleMap[role.name] = roleMap[RoleEnum.ADMIN.name]!!
                 }
             }
 
             val result = mutableListOf<RoleBasedGrantedAuthority>()
             for (kv in roleMap) {
-                val role = enumValueOfOrNull<Role>(kv.key)
+                val role = enumValueOfOrNull<RoleEnum>(kv.key)
                 if (role == null) {
                     logger.warn { "Role not found in roles: ${kv.key}" }
                     continue
                 }
 
                 // Cascading access level, eg WRITE gives you READ+WRITE
-                for (level in Level.toList(Level.valueOf(kv.value))) {
+                for (level in LevelEnum.toList(LevelEnum.valueOf(kv.value))) {
                     result.add(RoleBasedGrantedAuthority(role, level))
                 }
             }
@@ -126,14 +126,13 @@ class TokenCachingService(
         }
         val roles = createRoles(tokenService.getRoles(token))
 
-
         return UsernamePasswordAuthenticationToken(
             AuthUser(
                 userId = tokenService.getUserId(token),
                 userName = tokenService.getUsername(token),
                 sector = prontuario.al.generated.types.Sector(
                     tokenService.getSectorName(token),
-                    tokenService.getSectorCode(token)
+                    tokenService.getSectorCode(token),
                 ),
             ),
             null,

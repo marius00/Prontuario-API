@@ -8,10 +8,9 @@
 
 
 TODO:
-* Login rate limiting
 * Test with db
 * Run & fix tests
-
+* Require password flow on login
 
 ### Configuration
 

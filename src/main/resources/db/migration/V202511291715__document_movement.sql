@@ -8,7 +8,7 @@ CREATE TABLE `document_movement`
     FOREIGN KEY (document_id) REFERENCES document (id),
     FOREIGN KEY (user_id) REFERENCES user (id),
     FOREIGN KEY (from_sector) REFERENCES sector (name),
-    FOREIGN KEY (to_sector) REFERENCES sector (name),
+    FOREIGN KEY (to_sector) REFERENCES sector (name)
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_danish_ci;
 
 

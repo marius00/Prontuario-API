@@ -71,7 +71,7 @@
         const plugins = [HISTORY_PLUGIN, explorerPlugin()];
         const xsrfToken = document.cookie.match(new RegExp('(?:^| )XSRF-TOKEN=([^;]+)'));
         const initialHeaders = xsrfToken ? `{ "X-XSRF-TOKEN" : "${xsrfToken[1]}" }` : `{
-"Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2xvY2FsaG9zdCIsInN1YiI6IjEyMzQ1NiIsImp0aSI6IjEyMzQ1NiIsImlhdCI6MTc2MjI0Njk0MCwiZXhwIjoyMDAwMDAwMTQwLCJ1c2VybmFtZSI6Im15IHVzZXIiLCJ1c2VySWQiOjEsInJvbGVzIjp7IkFETUlOIjoiV1JJVEUifX0.qlf6wv3tmqE-3_-uyeVmAf4oKdtlqdDA8VS84U1xh9A"
+"Authorization": "Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJodHRwczovL2xvY2FsaG9zdCIsInN1YiI6IjEyMzQ1NiIsImp0aSI6IjEyMzQ1NiIsImlhdCI6MTc2MjI0Njk0MCwiZXhwIjoyMDAwMDAwMTQwLCJ1c2VybmFtZSI6Im15IHVzZXIiLCJzZWN0b3IiOiJBZG1pbmlzdHJhw6fDo28iLCJzZWN0b3JDb2RlIjoiQURNIiwidXNlcklkIjoxLCJyb2xlcyI6eyJBRE1JTiI6IldSSVRFIn19.xtaJEqzu6lFzEm0g0_UDgEW1d1XgmT4egiWyXSHq7Js"
 }`;
 
         function App() {

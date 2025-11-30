@@ -8,8 +8,8 @@ import org.springframework.http.HttpEntity
 import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
-import prontuario.al.auth.Level.WRITE
-import prontuario.al.auth.Role
+import prontuario.al.auth.LevelEnum.WRITE
+import prontuario.al.auth.RoleEnum
 import prontuario.al.auth.TokenService
 import prontuario.al.test.annotations.DatabaseTest
 import kotlin.test.assertEquals
@@ -26,7 +26,6 @@ class ApplicationTests {
 
     @Autowired
     private val restTemplate: TestRestTemplate? = null
-
 
     @Test
     fun `Should deny request without access token`() {
@@ -76,8 +75,7 @@ class ApplicationTests {
         val headers = HttpHeaders()
         headers.contentType = MediaType.APPLICATION_JSON
 
-
-        headers.setBearerAuth(tokenService.generate(1234, "myUser", "s", "code",mapOf(Role.USER to WRITE)))
+        headers.setBearerAuth(tokenService.generate(1234, "myUser", "s", "code", mapOf(RoleEnum.USER to WRITE)))
         val body = """{"query":"query MyQuery {\n  whoAmI {\n    id\n    isAuthenticated\n    roles {\n      level\n      role\n    }\n  }\n}","operationName":"MyQuery"}"""
 
         val request = HttpEntity<String>(body, headers)

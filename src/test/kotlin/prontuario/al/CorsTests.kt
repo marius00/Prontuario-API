@@ -5,8 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.*
-import prontuario.al.auth.Level.WRITE
-import prontuario.al.auth.Role
+import prontuario.al.auth.LevelEnum.WRITE
+import prontuario.al.auth.RoleEnum
 import prontuario.al.auth.TokenService
 import prontuario.al.test.annotations.DatabaseTest
 import kotlin.test.DefaultAsserter.assertNotNull
@@ -30,7 +30,7 @@ class CorsTests {
             set("Access-Control-Request-Headers", "Content-Type")
         }
 
-        headers.setBearerAuth(tokenService.generate(1234, "myUser", "Sec", "UUU", mapOf(Role.USER to WRITE)))
+        headers.setBearerAuth(tokenService.generate(1234, "myUser", "Sec", "UUU", mapOf(RoleEnum.USER to WRITE)))
         val entity = HttpEntity<String>(headers)
 
         val response: ResponseEntity<String> = restTemplate!!.exchange(
@@ -71,7 +71,7 @@ class CorsTests {
             set("Access-Control-Request-Method", "POST")
             set("Access-Control-Request-Headers", "Content-Type")
         }
-        headers.setBearerAuth(tokenService.generate(1234, "myUser", "Sec", "UUU", mapOf(Role.USER to WRITE)))
+        headers.setBearerAuth(tokenService.generate(1234, "myUser", "Sec", "UUU", mapOf(RoleEnum.USER to WRITE)))
         val entity = HttpEntity<String>(headers)
 
         // Act
@@ -96,7 +96,7 @@ class CorsTests {
             set("Access-Control-Request-Method", "POST")
             set("Access-Control-Request-Headers", "Content-Type")
         }
-        headers.setBearerAuth(tokenService.generate(1234, "myUser", "Sec", "UUU", mapOf(Role.USER to WRITE)))
+        headers.setBearerAuth(tokenService.generate(1234, "myUser", "Sec", "UUU", mapOf(RoleEnum.USER to WRITE)))
         val entity = HttpEntity<String>(headers)
 
         // Act

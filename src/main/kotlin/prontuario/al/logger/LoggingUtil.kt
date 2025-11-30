@@ -1,11 +1,11 @@
 package prontuario.al.logger
 
-import prontuario.al.database.IBaseModel
 import com.github.ksuid.KsuidGenerator
 import org.apache.commons.lang3.exception.ExceptionUtils
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.reflect.MethodSignature
 import org.slf4j.MDC
+import prontuario.al.database.IBaseModel
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.time.Instant
