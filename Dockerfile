@@ -2,8 +2,8 @@ FROM gradle:jdk25-corretto AS build
 WORKDIR /app
 ADD . /app
 RUN chmod 755 gradlew
-RUN  ./gradlew dependencies
-RUN ./gradlew bootJar
+#RUN  ./gradlew dependencies
+RUN ./gradlew bootJar --info
 COPY build/libs/prontuario*-SNAPSHOT.jar prontuario-0.0.1-SNAPSHOT.jar
 
 
