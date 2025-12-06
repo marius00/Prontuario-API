@@ -63,13 +63,13 @@ class DocumentResolver(
     @PreAuthorize("hasRole('USER:WRITE')")
     @DgsMutation
     fun sendDocument(
-        @InputArgument documents: List<ExistingDocumentInput>,
+        @InputArgument documents: List<Int>,
         @InputArgument sector: String,
     ): Response {
         val userSector = AuthUtil.getSector().name
 
         documents.forEach {
-            if (documentRepository.findById(DocumentId(it.id.toLong()))?.sector?.name != userSector) {
+            if (documentRepository.findById(DocumentId(it.toLong()))?.sector?.name != userSector) {
                 throw GraphqlException("Você não pode enviar um documento que não esteja em seu setor.", errorCode = GraphqlExceptionErrorCode.VALIDATION)
             }
         }
@@ -77,7 +77,7 @@ class DocumentResolver(
         documents.forEach {
             documentMovementRepository.saveRecord(
                 prontuario.al.documents.DocumentMovement(
-                    documentId = DocumentId(it.id.toLong()),
+                    documentId = DocumentId(it.toLong()),
                     userId = AuthUtil.getUserId(),
                     fromSector = AuthUtil.getSector().name,
                     toSector = sector,
@@ -87,7 +87,7 @@ class DocumentResolver(
             documentHistoryRepository.saveRecord(
                 DocumentHistory(
                     id = null,
-                    documentId = DocumentId(it.id.toLong()),
+                    documentId = DocumentId(it.toLong()),
                     action = DocumentHistoryTypeEnum.SENT,
                     sector = AuthUtil.getSector().name,
                     description = "Enviado para o setor $sector pelo ${AuthUtil.getUsername()}",
@@ -139,6 +139,7 @@ class DocumentResolver(
     @DgsMutation
     fun rejectDocument(
         @InputArgument id: Int,
+        @InputArgument description: String?,
     ): prontuario.al.generated.types.Document {
         val movement = documentMovementRepository.listForTargetSector(AuthUtil.getSector()).firstOrNull { it -> it.documentId!!.value == id.toLong() } ?: throw GraphqlException("Esse documento não foi encaminhado para seu setor.")
 
@@ -149,11 +150,34 @@ class DocumentResolver(
                 documentId = DocumentId(id.toLong()),
                 action = DocumentHistoryTypeEnum.REJECTED,
                 sector = AuthUtil.getSector().name,
-                description = "Rejeitado pelo ${AuthUtil.getUsername()}",
+                description = "Rejeitado pelo ${AuthUtil.getUsername()}" + if (description != null) "\n$description" else "",
             ),
         )
 
         // TODO: !Notification that document was rejected!
+
+        val doc = documentRepository.findById(DocumentId(id.toLong())) ?: throw GraphqlException("Documento não encontrado.")
+        return toGraphqlType(doc)
+    }
+
+    @PreAuthorize("hasRole('USER:WRITE')")
+    @DgsMutation
+    fun cancelDocument(
+        @InputArgument id: Int,
+        @InputArgument description: String?,
+    ): prontuario.al.generated.types.Document {
+        val movement = documentMovementRepository.listForSourceSector(AuthUtil.getSector()).firstOrNull { it -> it.documentId!!.value == id.toLong() } ?: throw GraphqlException("Esse documento não foi encaminhado para seu setor.")
+
+        documentMovementRepository.delete(movement)
+        documentHistoryRepository.saveRecord(
+            DocumentHistory(
+                id = null,
+                documentId = DocumentId(id.toLong()),
+                action = DocumentHistoryTypeEnum.REJECTED,
+                sector = AuthUtil.getSector().name,
+                description = "Encaminhamento cancelado pelo ${AuthUtil.getUsername()}" + if (description != null) "\n$description" else "",
+            ),
+        )
 
         val doc = documentRepository.findById(DocumentId(id.toLong())) ?: throw GraphqlException("Documento não encontrado.")
         return toGraphqlType(doc)
@@ -235,4 +259,11 @@ class DocumentResolver(
             outbox = outbox,
         )
     }
+
+    @PreAuthorize("hasRole('USER:READ')")
+    @DgsQuery
+    fun listAllDocuments(): List<Document> {
+        return documentRepository.list().map { it -> toGraphqlType(it) }
+    }
+
 }

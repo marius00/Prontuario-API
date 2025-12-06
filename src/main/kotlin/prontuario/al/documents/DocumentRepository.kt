@@ -79,6 +79,7 @@ class DocumentRepository(
             set(it.observations, record.observations)
             set(it.type, record.type)
             set(it.sector, record.sector.name)
+            set(it.userId, record.createdBy.value)
             set(it.createdAt, record.createdAt.epochSecond)
         } as Number
 

@@ -16,6 +16,8 @@ CREATE TABLE `document`
 ) DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_danish_ci;
 
 INSERT INTO document (number, name, observations, type, sector, created_at, user_id) VALUES
-('1', 'John Doe', 'Initial consultation', 'FICHA', 'Administração', UNIX_TIMESTAMP(), 1),
-('2', 'Jane Smith', 'Follow-up required', 'PRONTUARIO', 'Outro Setor', UNIX_TIMESTAMP(), 1),
-('3', 'Alice Johnson', NULL, 'FICHA', 'Administração', UNIX_TIMESTAMP(), 1);
+('1', 'John Outbox Doe', 'Initial consultation', 'FICHA', 'Administração', UNIX_TIMESTAMP(), 1),
+('2', 'Jane Inbox Smith', 'Follow-up required', 'PRONTUARIO', 'Outro Setor', UNIX_TIMESTAMP(), 1),
+('3', 'Alice CreatedByOther Johnson', NULL, 'FICHA', 'Administração', UNIX_TIMESTAMP(), 2),
+('4', 'Alice CreatedByMe Johnson2', NULL, 'FICHA', 'Administração', UNIX_TIMESTAMP(), 1),
+('5', 'Alice CreatedByMe Johnson3', NULL, 'FICHA', 'Administração', UNIX_TIMESTAMP(), 1);

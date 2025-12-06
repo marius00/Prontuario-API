@@ -21,8 +21,10 @@ class ResponseLoggingFilter : OncePerRequestFilter() {
         val wrappedResponse = ContentCachingResponseWrapper(response)
         filterChain.doFilter(request, wrappedResponse)
 
-        // Log response details
-        logResponse(wrappedResponse)
+        // Only log response for /graphql endpoint
+        if (request.requestURI == "/graphql") {
+            logResponse(wrappedResponse)
+        }
 
         wrappedResponse.copyBodyToResponse() // Important: copy the cached body back to the original response
     }

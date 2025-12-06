@@ -4,4 +4,18 @@ type Response {
 }
 
 
+type ErrorResponse {
+    errors: [Error!]!
+}
 
+type Error{
+    message: String!
+    locations: [String!]
+    extensions: ErrorExtensions!
+    path: [String!]
+}
+
+type ErrorExtensions {
+    classification: String
+    errorType: String
+}

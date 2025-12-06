@@ -1,13 +1,21 @@
 extend type Query {
     listDocumentsForDashboard: DashboardDocuments!
+    listAllDocuments: [Document!]!
 }
 
 extend type Mutation {
     createDocument(input: NewDocumentInput!): Document!
-    sendDocument(documents: [ExistingDocumentInput!]!, sector: String!): Response!
+    "Send document to a different sector"
+    sendDocument(documents: [Int!]!, sector: String!): Response!
+    "Receiver can signal that a document was received"
     acceptDocument(id: Int!): Document!
-    rejectDocument(id: Int!): Document!
+    "Receiver can signal that a document was not received"
+    rejectDocument(id: Int!, description: String): Document!
+    "Same as rejectDocument, but for the sender instead of the receiver"
+    cancelDocument(id: Int!, description: String): Document!
+    "Edit a document you created. Attempting to edit a document you don't own will result in an error."
     editDocument(input: ExistingDocumentInput!): Document!
+    "Request a document that is not in your inventory"
     requestDocument(id: Int!, reason: String!): Response!
 }
 

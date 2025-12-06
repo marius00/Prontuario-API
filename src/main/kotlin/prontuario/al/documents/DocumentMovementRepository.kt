@@ -52,14 +52,14 @@ class DocumentMovementRepository(
             .firstOrNull()
 
     fun saveRecord(record: DocumentMovement): DocumentMovement {
-        val id = database.insertAndGenerateKey(DocumentMovements) {
+        database.insert(DocumentMovements) {
             set(it.documentId, record.documentId!!.value)
             set(it.fromSector, record.fromSector)
             set(it.toSector, record.toSector)
             set(it.userId, record.userId.value)
-        } as Number
+        }
 
-        return findById(id.toLong())!!
+        return record
     }
 }
 
