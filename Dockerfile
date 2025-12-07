@@ -6,7 +6,6 @@ COPY gradlew gradlew
 COPY gradlew.bat gradlew.bat
 COPY gradle/wrapper gradle/wrapper
 RUN chmod 755 gradlew
-#COPY .gradle .gradle
 RUN ./gradlew --version
 
 # Image layer keeps dependencies cached
@@ -18,7 +17,7 @@ RUN ./gradlew dependencies
 ADD . /app
 RUN chmod 755 gradlew
 RUN ./gradlew --no-watch-fs bootJar
-COPY build/libs/prontuario*-SNAPSHOT.jar prontuario-0.0.1-SNAPSHOT.jar
+RUN mv build/libs/prontuario-0.0.1-SNAPSHOT.jar prontuario-0.0.1-SNAPSHOT.jar
 
 
 # Final runtime image without JDK
