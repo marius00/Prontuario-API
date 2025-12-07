@@ -16,6 +16,7 @@ RUN ./gradlew dependencies
 
 # Copy source and build the application
 ADD . /app
+RUN chmod 755 gradlew
 RUN ./gradlew --no-watch-fs bootJar
 COPY build/libs/prontuario*-SNAPSHOT.jar prontuario-0.0.1-SNAPSHOT.jar
 
