@@ -5,6 +5,7 @@ WORKDIR /app
 COPY gradlew gradlew
 COPY gradlew.bat gradlew.bat
 COPY gradle/wrapper gradle/wrapper
+RUN chmod 755 gradlew
 #COPY .gradle .gradle
 RUN ./gradlew --version
 
