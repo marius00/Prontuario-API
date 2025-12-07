@@ -5,7 +5,7 @@ WORKDIR /app
 COPY gradlew gradlew
 COPY gradlew.bat gradlew.bat
 COPY gradle/wrapper gradle/wrapper
-COPY .gradle .gradle
+#COPY .gradle .gradle
 RUN ./gradlew --version
 
 # Image layer keeps dependencies cached
