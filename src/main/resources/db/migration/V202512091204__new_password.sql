@@ -1,0 +1,1 @@
+UPDATE user SET PASSWORD = '16:8:1:RUsj7x3nhqVrHT4NhwChjDAg4OnbGR93glRP5NBkebacslUCuDcxn02Ep0BaGNvx';

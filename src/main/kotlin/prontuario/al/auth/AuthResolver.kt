@@ -206,7 +206,7 @@ class AuthResolver(
         return CreateUserResult(found.id!!.value.toInt(), password)
     }
 
-    @PreAuthorize("hasRole('ADMIN:WRITE')")
+    @PreAuthorize("hasRole('USER:WRITE')")
     @DgsMutation
     fun resetOwnPassword(
         @InputArgument oldPassword: String,
