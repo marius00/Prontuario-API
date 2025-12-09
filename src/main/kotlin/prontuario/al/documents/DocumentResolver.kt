@@ -39,6 +39,7 @@ class DocumentResolver(
             type = input.type,
             sector = AuthUtil.getSector(),
             createdBy = AuthUtil.getUserId(),
+            createdByUsername = AuthUtil.getUsername(),
         )
 
         val doc = documentRepository.saveRecord(document)
@@ -52,18 +53,7 @@ class DocumentResolver(
             ),
         )
 
-        return prontuario.al.generated.types.Document(
-            id = doc.id.value.toInt(),
-            number = doc.number.toInt(),
-            name = doc.name,
-            observations = doc.observations,
-            type = doc.type,
-            sector = doc.sector,
-            history = emptyList(),
-            // createdAt = doc.createdAt.toString(),
-            // modifiedAt = doc.modifiedAt?.toString(),
-            // deletedAt = doc.deletedAt?.toString(),
-        )
+        return toGraphqlType(doc)
     }
 
     @PreAuthorize("hasRole('USER:WRITE')")
@@ -139,6 +129,7 @@ class DocumentResolver(
             type = doc.type,
             sector = doc.sector,
             history = emptyList(),
+            createdBy = doc.createdByUsername ?: ""
         )
 
     @PreAuthorize("hasRole('USER:WRITE')")
@@ -209,6 +200,7 @@ class DocumentResolver(
                 input.type,
                 doc.sector,
                 doc.createdBy,
+                doc.createdByUsername,
                 doc.createdAt,
                 Instant.now(),
             ),

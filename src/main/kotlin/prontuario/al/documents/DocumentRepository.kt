@@ -15,6 +15,7 @@ import prontuario.al.ktorm.getDate
 import prontuario.al.ktorm.getDateOrFail
 import prontuario.al.ktorm.getOrFail
 import java.time.Instant
+import prontuario.al.auth.Users as UserTable
 
 @Repository
 class DocumentRepository(
@@ -23,6 +24,7 @@ class DocumentRepository(
     fun list(): List<Document> =
         database
             .from(Documents)
+            .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
             .select()
             .map(Documents::createEntity)
             .toList()
@@ -42,6 +44,7 @@ class DocumentRepository(
 
         return database
             .from(Documents)
+            .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
             .select()
             .where { Documents.id.inList(ids.map { it.value }) }
             .map(Documents::createEntity)
@@ -51,6 +54,7 @@ class DocumentRepository(
     fun list(sector: Sector): List<Document> =
         database
             .from(Documents)
+            .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
             .select()
             .where { Documents.sector eq sector.name }
             .map(Documents::createEntity)
@@ -59,6 +63,7 @@ class DocumentRepository(
     fun findById(id: DocumentId): Document? =
         database
             .from(Documents)
+            .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
             .select()
             .where { (Documents.id eq id.value) }
             .map(Documents::createEntity)
@@ -108,6 +113,7 @@ data class Document(
     val type: DocumentTypeEnum,
     var sector: Sector,
     var createdBy: UserId,
+    val createdByUsername: String?,
     val createdAt: Instant = Instant.now(),
     val modifiedAt: Instant? = null,
     val deletedAt: Instant? = null,
@@ -138,6 +144,7 @@ object Documents : BaseTable<Document>("document") {
         sector = Sector(row.getOrFail(sector), null),
         type = row.getOrFail(type),
         createdBy = UserId(row.getOrFail(userId)),
+        createdByUsername = row.getOrFail(UserTable.login),
         createdAt = row.getDateOrFail(createdAt),
         modifiedAt = row.getDate(modifiedAt),
         deletedAt = row.getDate(deletedAt),

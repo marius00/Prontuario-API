@@ -38,6 +38,7 @@ type Document {
     observations: String
     sector: Sector
     history: [DocumentHistory!]!
+    createdBy: String!
 }
 type DocumentHistory {
     action: DocumentActionEnum!
