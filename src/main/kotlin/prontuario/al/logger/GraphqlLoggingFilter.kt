@@ -48,7 +48,7 @@ class GraphqlLoggingFilter : SimplePerformantInstrumentation() {
             }
         }
         LoggingUtil.mdcPut("requestId", LoggingUtil.generateUUID())
-        logger.info { "Received GraphQL $type" }
+        logger.info { "Received GraphQL $type: $endpoint" }
 
         return ExecutionStrategyInstrumentationContext.NOOP
     }

@@ -21,7 +21,7 @@ RUN mv build/libs/prontuario-0.0.1-SNAPSHOT.jar prontuario-0.0.1-SNAPSHOT.jar
 
 
 # Final runtime image without JDK
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:23-jre-alpine
 WORKDIR /app
 COPY --from=build /app/prontuario-0.0.1-SNAPSHOT.jar app.jar
 COPY src/main/resources/application.properties application.properties
