@@ -25,6 +25,12 @@ class DocumentResolver(
     fun createDocument(
         @InputArgument input: NewDocumentInput,
     ): prontuario.al.generated.types.Document {
+
+        if (documentRepository.exists(input.number.toString())) {
+            throw GraphqlException("Já existe um protocolo com esse número.", errorCode = GraphqlExceptionErrorCode.VALIDATION)
+        }
+
+
         val document = prontuario.al.documents.Document(
             id = null,
             number = input.number.toString(),

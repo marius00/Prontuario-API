@@ -27,6 +27,14 @@ class DocumentRepository(
             .map(Documents::createEntity)
             .toList()
 
+    fun exists(documentNumber: String): Boolean =
+        database
+            .from(Documents)
+            .select()
+            .where { Documents.number eq documentNumber }
+            .iterator()
+            .hasNext()
+
     fun list(ids: List<DocumentId>): List<Document> {
         if (ids.isEmpty()) {
             return emptyList()
