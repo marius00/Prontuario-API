@@ -4,7 +4,7 @@ import com.netflix.graphql.dgs.DgsComponent
 import com.netflix.graphql.dgs.DgsMutation
 import com.netflix.graphql.dgs.DgsQuery
 import com.netflix.graphql.dgs.InputArgument
-import de.mkammerer.argon2.Argon2Factory
+import org.bouncycastle.crypto.generators.SCrypt
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
 import prontuario.al.auth.Users.sector
@@ -13,6 +13,7 @@ import prontuario.al.exception.GraphqlException
 import prontuario.al.exception.GraphqlExceptionErrorCode
 import prontuario.al.generated.types.*
 import prontuario.al.logger.GraphqlLoggingFilter.Companion.logger
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicInteger
@@ -113,7 +114,7 @@ class AuthResolver(
         }
 
         val password = if (foundForOtherSector == null) "tmp" + Random.nextInt() else "A mesma senha que antes"
-        val passwordHash = if (foundForOtherSector != null) foundForOtherSector.password else Argon2Factory.create().hash(2, 65536, 1, password)
+        val passwordHash = if (foundForOtherSector != null) foundForOtherSector.password else hashPassword(password)
 
         logger.info { "Password hash created.." }
 
@@ -190,12 +191,13 @@ class AuthResolver(
             ?: throw GraphqlException("Usuario não encontrado", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
 
         val password = "tmp" + Random.nextInt()
+        val passwordHash = hashPassword(password)
         userRepository.update(
             User(
                 id = found.id,
                 login = found.login,
                 sector = found.sector,
-                password = Argon2Factory.create().hash(2, 65536, 1, password),
+                password = passwordHash,
                 role = found.role,
                 requirePasswordReset = true,
             ),
@@ -218,18 +220,28 @@ class AuthResolver(
             )
         }
 
+        val passwordHash = hashPassword(newPassword)
         userRepository.update(
             User(
                 id = found.id,
                 login = found.login,
                 sector = found.sector,
-                password = Argon2Factory.create().hash(2, 65536, 1, newPassword),
+                password = passwordHash,
                 role = found.role,
                 requirePasswordReset = false,
             ),
         )
         logger.info { "Changed password for ${AuthUtil.getUsername()}" }
         return CreateUserResult(found.id!!.value.toInt(), "A sua senha foi alterada com sucesso")
+    }
+
+    private fun hashPassword(password: String): String {
+        val N = 16
+        val r = 8
+        val p = 1
+        val salt = Random.nextBytes(16)
+        val hash = SCrypt.generate(password.toByteArray(), salt, N, r, p, 32)
+        return "$N:$r:$p:${Base64.getEncoder().encodeToString(salt + hash)}"
     }
 }
 

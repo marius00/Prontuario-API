@@ -68,7 +68,7 @@ dependencies {
     implementation("org.apache.commons:commons-lang3:3.18.0")
     implementation("commons-validator:commons-validator:1.9.0")
 
-    implementation("de.mkammerer:argon2-jvm:2.12")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.83")
 }
 
 dependencyManagement {

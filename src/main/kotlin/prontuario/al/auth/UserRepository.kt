@@ -1,6 +1,6 @@
 package prontuario.al.auth
 
-import de.mkammerer.argon2.Argon2Factory
+import org.bouncycastle.crypto.generators.SCrypt
 import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.ktorm.schema.*
@@ -10,6 +10,7 @@ import prontuario.al.ktorm.getDate
 import prontuario.al.ktorm.getDateOrFail
 import prontuario.al.ktorm.getOrFail
 import java.time.Instant
+import java.util.*
 
 @Repository
 class UserRepository(
@@ -105,8 +106,21 @@ data class User(
 ) : IBaseModel {
     override fun getId(): Any? = id
 
-    fun isValid(password: String): Boolean = Argon2Factory.create().verify(this.password, password)
+    fun isValid(password: String): Boolean {
+        if (this.password == null) return false
+        val parts = this.password.split(":")
+        if (parts.size != 4) return false
+        val N = parts[0].toInt()
+        val r = parts[1].toInt()
+        val p = parts[2].toInt()
+        val hashAndSalt = Base64.getDecoder().decode(parts[3])
+        val salt = hashAndSalt.sliceArray(0 until 16)
+        val hash = hashAndSalt.sliceArray(16 until hashAndSalt.size)
+        val testHash = SCrypt.generate(password.toByteArray(), salt, N, r, p, hash.size)
+        return hash.contentEquals(testHash)
+    }
 }
+
 
 object Users : BaseTable<User>("user") {
     val id = long("id").primaryKey()
