@@ -26,4 +26,5 @@ WORKDIR /app
 COPY --from=build /app/prontuario-0.0.1-SNAPSHOT.jar app.jar
 COPY src/main/resources/application.properties application.properties
 COPY src/main/resources/application-prod.properties application-prod.properties
+RUN export LD_BIND_NOW=1
 ENTRYPOINT ["java", "-jar", "app.jar"]

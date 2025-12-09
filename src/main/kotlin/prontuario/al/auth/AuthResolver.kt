@@ -104,9 +104,18 @@ class AuthResolver(
             throw GraphqlException("Usuario já existe", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.ALREADY_EXISTS)
         }
 
+        logger.info { "Creating user $username" }
         val foundForOtherSector = userRepository.findUser(username)
+        if (foundForOtherSector != null) {
+            logger.info { "User $username already exists for another sector, reusing password hash" }
+        } else {
+            logger.info { "User does not exist from before" }
+        }
+
         val password = if (foundForOtherSector == null) "tmp" + Random.nextInt() else "A mesma senha que antes"
         val passwordHash = if (foundForOtherSector != null) foundForOtherSector.password else Argon2Factory.create().hash(2, 65536, 1, password)
+
+        logger.info { "Password hash created.." }
 
         val user = userRepository.saveRecord(
             User(
