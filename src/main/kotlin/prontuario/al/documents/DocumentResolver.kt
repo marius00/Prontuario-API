@@ -66,6 +66,10 @@ class DocumentResolver(
     ): Response {
         val userSector = AuthUtil.getSector().name
 
+        if (userSector == sector) {
+            throw GraphqlException("Você não pode enviar um documento para o mesmo setor.", errorCode = GraphqlExceptionErrorCode.VALIDATION)
+        }
+
         documents.forEach {
             if (documentRepository.findById(DocumentId(it.toLong()))?.sector?.name != userSector) {
                 throw GraphqlException("Você não pode enviar um documento que não esteja em seu setor.", errorCode = GraphqlExceptionErrorCode.VALIDATION)
@@ -124,6 +128,15 @@ class DocumentResolver(
         documentRepository.update(doc)
 
         return toGraphqlType(doc)
+    }
+
+
+    @PreAuthorize("hasRole('USER:WRITE')")
+    @DgsMutation
+    fun acceptDocuments(
+        @InputArgument ids: List<Int>,
+    ): List<prontuario.al.generated.types.Document> {
+        return ids.map { it ->acceptDocument(it) }
     }
 
     private fun toGraphqlType(doc: prontuario.al.documents.Document): prontuario.al.generated.types.Document =

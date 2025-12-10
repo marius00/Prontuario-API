@@ -9,6 +9,7 @@ extend type Mutation {
     sendDocument(documents: [Int!]!, sector: String!): Response!
     "Receiver can signal that a document was received"
     acceptDocument(id: Int!): Document!
+    acceptDocuments(ids: [Int!]!): [Document!]!
     "Receiver can signal that a document was not received"
     rejectDocument(id: Int!, description: String): Document!
     "Same as rejectDocument, but for the sender instead of the receiver"
