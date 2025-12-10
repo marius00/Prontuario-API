@@ -50,6 +50,8 @@ class DocumentResolver(
                 action = DocumentHistoryTypeEnum.CREATED,
                 sector = AuthUtil.getSector().name,
                 description = "Registrado pelo ${AuthUtil.getUsername()}",
+                userId = AuthUtil.getUserId(),
+                username = AuthUtil.getUsername(),
             ),
         )
 
@@ -87,6 +89,8 @@ class DocumentResolver(
                     action = DocumentHistoryTypeEnum.SENT,
                     sector = AuthUtil.getSector().name,
                     description = "Enviado para o setor $sector pelo ${AuthUtil.getUsername()}",
+                    userId = AuthUtil.getUserId(),
+                    username = AuthUtil.getUsername(),
                 ),
             )
         }
@@ -109,6 +113,8 @@ class DocumentResolver(
                 action = DocumentHistoryTypeEnum.RECEIVED,
                 sector = AuthUtil.getSector().name,
                 description = "Recebido pelo ${AuthUtil.getUsername()}",
+                userId = AuthUtil.getUserId(),
+                username = AuthUtil.getUsername(),
             ),
         )
 
@@ -128,9 +134,27 @@ class DocumentResolver(
             observations = doc.observations,
             type = doc.type,
             sector = doc.sector,
-            history = emptyList(),
+            history = doc.history.map { history ->
+                prontuario.al.generated.types.DocumentHistory(
+                    action = history.action.toGraphqlType(),
+                    user = history.username ?: "",
+                    sector = prontuario.al.generated.types.Sector(history.sector, null),
+                    dateTime = history.createdAt.toString(),
+                    description = history.description ?: ""
+                )
+            },
             createdBy = doc.createdByUsername ?: ""
         )
+
+    private fun DocumentHistoryTypeEnum.toGraphqlType(): DocumentActionEnum = when (this) {
+        DocumentHistoryTypeEnum.CREATED -> DocumentActionEnum.CREATED
+        DocumentHistoryTypeEnum.SENT -> DocumentActionEnum.SENT
+        DocumentHistoryTypeEnum.RECEIVED -> DocumentActionEnum.RECEIVED
+        DocumentHistoryTypeEnum.REJECTED -> DocumentActionEnum.REJECTED
+        DocumentHistoryTypeEnum.REQUESTED -> DocumentActionEnum.REQUESTED
+        DocumentHistoryTypeEnum.UPDATED -> DocumentActionEnum.MODIFIED
+        DocumentHistoryTypeEnum.DELETED -> DocumentActionEnum.DELETED
+    }
 
     @PreAuthorize("hasRole('USER:WRITE')")
     @DgsMutation
@@ -148,6 +172,8 @@ class DocumentResolver(
                 action = DocumentHistoryTypeEnum.REJECTED,
                 sector = AuthUtil.getSector().name,
                 description = "Rejeitado pelo ${AuthUtil.getUsername()}" + if (description != null) "\n$description" else "",
+                userId = AuthUtil.getUserId(),
+                username = AuthUtil.getUsername(),
             ),
         )
 
@@ -173,6 +199,8 @@ class DocumentResolver(
                 action = DocumentHistoryTypeEnum.REJECTED,
                 sector = AuthUtil.getSector().name,
                 description = "Encaminhamento cancelado pelo ${AuthUtil.getUsername()}" + if (description != null) "\n$description" else "",
+                userId = AuthUtil.getUserId(),
+                username = AuthUtil.getUsername(),
             ),
         )
 
@@ -201,6 +229,7 @@ class DocumentResolver(
                 doc.sector,
                 doc.createdBy,
                 doc.createdByUsername,
+                doc.history,
                 doc.createdAt,
                 Instant.now(),
             ),
@@ -227,6 +256,8 @@ class DocumentResolver(
                 action = DocumentHistoryTypeEnum.UPDATED,
                 sector = AuthUtil.getSector().name,
                 description = "Modificado pelo ${AuthUtil.getUsername()}: " + changes.joinToString { it },
+                userId = AuthUtil.getUserId(),
+                username = AuthUtil.getUsername(),
             ),
         )
 

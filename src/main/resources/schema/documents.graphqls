@@ -70,4 +70,6 @@ enum DocumentActionEnum{
     RECEIVED
     REJECTED
     REQUESTED
+    MODIFIED
+    DELETED
 }

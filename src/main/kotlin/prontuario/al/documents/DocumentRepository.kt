@@ -20,6 +20,7 @@ import prontuario.al.auth.Users as UserTable
 @Repository
 class DocumentRepository(
     private val database: Database,
+    private val documentHistoryRepository: DocumentHistoryRepository,
 ) {
     fun list(): List<Document> =
         database
@@ -28,6 +29,7 @@ class DocumentRepository(
             .select()
             .map(Documents::createEntity)
             .toList()
+            .let { loadDocumentsWithHistory(it) }
 
     fun exists(documentNumber: String): Boolean =
         database
@@ -49,6 +51,7 @@ class DocumentRepository(
             .where { Documents.id.inList(ids.map { it.value }) }
             .map(Documents::createEntity)
             .toList()
+            .let { loadDocumentsWithHistory(it) }
     }
 
     fun list(sector: Sector): List<Document> =
@@ -59,6 +62,7 @@ class DocumentRepository(
             .where { Documents.sector eq sector.name }
             .map(Documents::createEntity)
             .toList()
+            .let { loadDocumentsWithHistory(it) }
 
     fun findById(id: DocumentId): Document? =
         database
@@ -68,6 +72,7 @@ class DocumentRepository(
             .where { (Documents.id eq id.value) }
             .map(Documents::createEntity)
             .firstOrNull()
+            ?.let { loadDocumentWithHistory(it) }
 
     fun update(record: Document): Document {
         database.update(Documents) {
@@ -98,6 +103,24 @@ class DocumentRepository(
 
         return findById(DocumentId(id.toLong()))!!
     }
+
+    private fun loadDocumentsWithHistory(documents: List<Document>): List<Document> {
+        if (documents.isEmpty()) return documents
+
+        val documentIds = documents.mapNotNull { it.id }
+        val historyMap = documentHistoryRepository.listByDocumentIds(documentIds)
+            .groupBy { it.documentId }
+
+        return documents.map { document ->
+            val history = historyMap[document.id] ?: emptyList()
+            document.copy(history = history)
+        }
+    }
+
+    private fun loadDocumentWithHistory(document: Document): Document {
+        val history = document.id?.let { documentHistoryRepository.listByDocumentId(it) } ?: emptyList()
+        return document.copy(history = history)
+    }
 }
 
 @JvmInline
@@ -114,6 +137,7 @@ data class Document(
     var sector: Sector,
     var createdBy: UserId,
     val createdByUsername: String?,
+    val history: List<DocumentHistory> = emptyList(),
     val createdAt: Instant = Instant.now(),
     val modifiedAt: Instant? = null,
     val deletedAt: Instant? = null,

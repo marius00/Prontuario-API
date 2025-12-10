@@ -7,11 +7,13 @@ import org.ktorm.schema.enum
 import org.ktorm.schema.long
 import org.ktorm.schema.varchar
 import org.springframework.stereotype.Repository
+import prontuario.al.auth.UserId
 import prontuario.al.database.IBaseModel
 import prontuario.al.ktorm.getDate
 import prontuario.al.ktorm.getDateOrFail
 import prontuario.al.ktorm.getOrFail
 import java.time.Instant
+import prontuario.al.auth.Users as UserTable
 
 @Repository
 class DocumentHistoryRepository(
@@ -20,13 +22,38 @@ class DocumentHistoryRepository(
     fun list(): List<DocumentHistory> =
         database
             .from(DocumentHistorys)
+            .leftJoin(UserTable, on = DocumentHistorys.userId eq UserTable.id)
             .select()
             .map(DocumentHistorys::createEntity)
             .toList()
 
+    fun listByDocumentId(documentId: DocumentId): List<DocumentHistory> =
+        database
+            .from(DocumentHistorys)
+            .leftJoin(UserTable, on = DocumentHistorys.userId eq UserTable.id)
+            .select()
+            .where { DocumentHistorys.documentId eq documentId.value }
+            .orderBy(DocumentHistorys.createdAt.asc())
+            .map(DocumentHistorys::createEntity)
+            .toList()
+
+    fun listByDocumentIds(documentIds: List<DocumentId>): List<DocumentHistory> {
+        if (documentIds.isEmpty()) return emptyList()
+
+        return database
+            .from(DocumentHistorys)
+            .leftJoin(UserTable, on = DocumentHistorys.userId eq UserTable.id)
+            .select()
+            .where { DocumentHistorys.documentId.inList(documentIds.map { it.value }) }
+            .orderBy(DocumentHistorys.createdAt.asc())
+            .map(DocumentHistorys::createEntity)
+            .toList()
+    }
+
     private fun findById(id: Long): DocumentHistory? =
         database
             .from(DocumentHistorys)
+            .leftJoin(UserTable, on = DocumentHistorys.userId eq UserTable.id)
             .select()
             .where { (DocumentHistorys.id eq id) }
             .map(DocumentHistorys::createEntity)
@@ -38,6 +65,7 @@ class DocumentHistoryRepository(
             set(it.action, record.action)
             set(it.sector, record.sector)
             set(it.description, record.description)
+            set(it.userId, record.userId?.value)
             set(it.createdAt, record.createdAt.epochSecond)
         } as Number
 
@@ -61,6 +89,8 @@ data class DocumentHistory(
     val action: DocumentHistoryTypeEnum,
     val sector: String,
     val description: String?,
+    val userId: UserId?,
+    val username: String?,
     val createdAt: Instant = Instant.now(),
     val modifiedAt: Instant? = null,
     val deletedAt: Instant? = null,
@@ -74,6 +104,7 @@ object DocumentHistorys : BaseTable<DocumentHistory>("document_history") {
     val action = enum<DocumentHistoryTypeEnum>("action")
     val sector = varchar("sector")
     val description = varchar("description")
+    val userId = long("user_id")
     val createdAt = long("created_at")
     val modifiedAt = long("modified_at")
     val deletedAt = long("deleted_at")
@@ -87,6 +118,8 @@ object DocumentHistorys : BaseTable<DocumentHistory>("document_history") {
         documentId = DocumentId(row.getOrFail(documentId)),
         description = row.getOrFail(description),
         sector = row.getOrFail(sector),
+        userId = row[userId]?.let { UserId(it) },
+        username = row[UserTable.login],
         createdAt = row.getDateOrFail(createdAt),
         modifiedAt = row.getDate(modifiedAt),
         deletedAt = row.getDate(deletedAt),
