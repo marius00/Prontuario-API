@@ -12,6 +12,9 @@ type Mutation {
     deactivateUser(username: String!): Response!
     resetOwnPassword(oldPassword: String!, newPassword: String!): CreateUserResult!
     resetPassword(username: String!): CreateUserResult!
+
+    savePushSubscription(subscription: PushSubscriptionInput!): Response!
+    invalidateAllPushSubscriptions: Response!
 }
 
 type User {
@@ -57,3 +60,15 @@ type CreateUserResult {
     id: Int!
     password: String!
 }
+
+input PushSubscriptionInput {
+    endpoint: String!
+    expirationTime: String
+    keys: PushSubscriptionKeysInput!
+}
+
+input PushSubscriptionKeysInput {
+    auth: String!
+    p256dh: String!
+}
+

@@ -25,6 +25,7 @@ class AuthResolver(
     private val tokenService: TokenService,
     private val rateLimiter: RateLimitingService,
     private val sectorRepository: SectorRepository,
+    private val pushSubscriptionRepository: PushSubscriptionRepository,
 ) {
     @PreAuthorize("true")
     @DgsQuery
@@ -233,6 +234,42 @@ class AuthResolver(
         )
         logger.info { "Changed password for ${AuthUtil.getUsername()}" }
         return CreateUserResult(found.id!!.value.toInt(), "A sua senha foi alterada com sucesso")
+    }
+
+    @PreAuthorize("hasRole('USER:WRITE')")
+    @DgsMutation
+    fun savePushSubscription(
+        @InputArgument subscription: PushSubscriptionInput,
+    ): Response {
+        val userId = AuthUtil.getUserId()
+
+        // Check if subscription already exists for this user and endpoint
+        val existing = pushSubscriptionRepository.findByUserIdAndEndpoint(userId, subscription.endpoint)
+        if (existing != null) {
+            logger.info { "Push subscription already exists for user $userId and endpoint ${subscription.endpoint}" }
+            return Response(true)
+        }
+
+        val pushSubscription = PushSubscription(
+            id = null,
+            userId = userId,
+            endpoint = subscription.endpoint,
+            p256dh = subscription.keys.p256dh,
+            auth = subscription.keys.auth,
+        )
+
+        pushSubscriptionRepository.saveRecord(pushSubscription)
+        logger.info { "Saved push subscription for user $userId" }
+        return Response(true)
+    }
+
+    @PreAuthorize("hasRole('USER:WRITE')")
+    @DgsMutation
+    fun invalidateAllPushSubscriptions(): Response {
+        val userId = AuthUtil.getUserId()
+        pushSubscriptionRepository.deleteAllByUserId(userId)
+        logger.info { "Invalidated all push subscriptions for user $userId" }
+        return Response(true)
     }
 
     private fun hashPassword(password: String): String {
