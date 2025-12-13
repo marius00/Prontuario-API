@@ -11,6 +11,7 @@ import prontuario.al.exception.GraphqlException
 import prontuario.al.exception.GraphqlExceptionErrorCode
 import prontuario.al.generated.types.*
 import prontuario.al.generated.types.Document
+import prontuario.al.logger.GraphqlLoggingFilter.Companion.logger
 import java.time.Instant
 
 @DgsComponent
@@ -19,6 +20,7 @@ class DocumentResolver(
     private val documentRepository: DocumentRepository,
     private val documentHistoryRepository: DocumentHistoryRepository,
     private val documentMovementRepository: DocumentMovementRepository,
+    private val documentRequestRepository: DocumentRequestRepository,
 ) {
     @PreAuthorize("hasRole('USER:WRITE')")
     @DgsMutation
@@ -306,6 +308,49 @@ class DocumentResolver(
     @DgsQuery
     fun listAllDocuments(): List<Document> {
         return documentRepository.list().map { it -> toGraphqlType(it) }
+    }
+
+    @PreAuthorize("hasRole('USER:WRITE')")
+    @DgsMutation
+    fun requestDocument(
+        @InputArgument id: Int,
+        @InputArgument reason: String,
+    ): Response {
+        val userId = AuthUtil.getUserId()
+        val userSector = AuthUtil.getSector().name
+        logger.info { "User $userId from sector $userSector is requesting document $id for reason: $reason" }
+
+        val document = documentRepository.findById(DocumentId(id.toLong()))
+            ?: throw GraphqlException("Document with id $id not found", errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
+
+        val documentSector = document.sector.name
+
+        if (userSector == documentSector) {
+            throw GraphqlException("Cannot request a document from your own sector", errorCode = GraphqlExceptionErrorCode.VALIDATION)
+        }
+
+        val documentRequest = DocumentRequest(
+            id = null,
+            documentId = DocumentId(id.toLong()),
+            toSector = userSector,
+            userId = userId,
+            reason = reason,
+        )
+
+        documentRequestRepository.saveRecord(documentRequest)
+        documentHistoryRepository.saveRecord(
+            DocumentHistory(
+                id = null,
+                documentId = DocumentId(id.toLong()),
+                action = DocumentHistoryTypeEnum.REQUESTED,
+                sector = userSector,
+                description = "Solicitado pelo ${AuthUtil.getUsername()} para o setor $documentSector. Motivo: $reason",
+                userId = userId,
+                username = AuthUtil.getUsername(),
+            ),
+        )
+
+        return Response(true)
     }
 
 }
