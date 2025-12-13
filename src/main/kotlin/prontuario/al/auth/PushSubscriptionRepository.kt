@@ -67,6 +67,15 @@ class PushSubscriptionRepository(
             }
         }
     }
+
+    fun delete(subscription: PushSubscription) {
+        database.update(PushSubscriptions) {
+            set(it.deletedAt, Instant.now().epochSecond)
+            where {
+                it.id eq subscription.id!!.value
+            }
+        }
+    }
 }
 
 @JvmInline

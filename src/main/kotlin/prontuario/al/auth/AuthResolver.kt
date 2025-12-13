@@ -217,7 +217,8 @@ class AuthResolver(
             ?: throw GraphqlException("Usuario não encontrado", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
 
         if (!found.isValid(oldPassword)) {
-            throw GraphqlException("Senha atual incorreta", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.VALIDATION
+            throw GraphqlException(
+                "Senha atual incorreta", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.VALIDATION
             )
         }
 
@@ -260,6 +261,20 @@ class AuthResolver(
 
         pushSubscriptionRepository.saveRecord(pushSubscription)
         logger.info { "Saved push subscription for user $userId" }
+        return Response(true)
+    }
+
+
+    @PreAuthorize("hasRole('USER:WRITE')")
+    @DgsMutation
+    fun invalidatePushSubscription(
+        @InputArgument subscription: PushSubscriptionInput,
+    ): Response {
+        val userId = AuthUtil.getUserId()
+        pushSubscriptionRepository.findByUserIdAndEndpoint(AuthUtil.getUserId(), subscription.endpoint)?.let {
+            pushSubscriptionRepository.delete(it)
+            logger.info { "Invalidated push subscription for user $userId and endpoint ${subscription.endpoint}" }
+        } ?: logger.info { "No push subscription found for user $userId and endpoint ${subscription.endpoint}" }
         return Response(true)
     }
 

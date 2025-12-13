@@ -11,7 +11,7 @@ import javax.security.sasl.AuthenticationException
 class AuthUtil {
     companion object {
         fun getUserId(): UserId {
-            val authUser = SecurityContextHolder.getContext().authentication.principal as AuthUser?
+            val authUser = SecurityContextHolder.getContext().authentication.principal as? AuthUser
             if (authUser != null) {
                 return UserId(authUser.userId)
             }
@@ -20,7 +20,7 @@ class AuthUtil {
         }
 
         fun getUsername(): String {
-            val authUser = SecurityContextHolder.getContext().authentication.principal as AuthUser?
+            val authUser = SecurityContextHolder.getContext().authentication.principal as? AuthUser
             if (authUser != null) {
                 return authUser.userName
             }
@@ -29,7 +29,7 @@ class AuthUtil {
         }
 
         fun getSector(): Sector {
-            val authUser = SecurityContextHolder.getContext().authentication.principal as AuthUser?
+            val authUser = SecurityContextHolder.getContext().authentication.principal as? AuthUser
             if (authUser != null) {
                 return authUser.sector
             }

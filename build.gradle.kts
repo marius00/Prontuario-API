@@ -69,6 +69,7 @@ dependencies {
     implementation("commons-validator:commons-validator:1.9.0")
 
     implementation("org.bouncycastle:bcprov-jdk18on:1.83")
+    implementation("com.interaso:webpush:1.2.0")
 }
 
 dependencyManagement {
