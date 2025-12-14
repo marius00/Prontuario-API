@@ -54,6 +54,30 @@ class DocumentRepository(
             .let { loadDocumentsWithHistory(it) }
     }
 
+    fun list(ids: List<DocumentId>, since: Instant?): List<Document> {
+        if (ids.isEmpty()) {
+            return emptyList()
+        }
+
+        val query = database
+            .from(Documents)
+            .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
+            .select()
+            .where { Documents.id.inList(ids.map { it.value }) }
+
+        return if (since != null) {
+            query.where {
+                (Documents.modifiedAt greater since.epochSecond) or
+                    (Documents.modifiedAt.isNull() and (Documents.createdAt greater since.epochSecond))
+            }
+        } else {
+            query
+        }
+            .map(Documents::createEntity)
+            .toList()
+            .let { loadDocumentsWithHistory(it) }
+    }
+
     fun list(sector: Sector): List<Document> =
         database
             .from(Documents)
@@ -63,6 +87,45 @@ class DocumentRepository(
             .map(Documents::createEntity)
             .toList()
             .let { loadDocumentsWithHistory(it) }
+
+    fun list(since: Instant?): List<Document> {
+        val query = database
+            .from(Documents)
+            .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
+            .select()
+
+        return if (since != null) {
+            query.where {
+                (Documents.modifiedAt greater since.epochSecond) or
+                    (Documents.modifiedAt.isNull() and (Documents.createdAt greater since.epochSecond))
+            }
+        } else {
+            query
+        }
+            .map(Documents::createEntity)
+            .toList()
+            .let { loadDocumentsWithHistory(it) }
+    }
+
+    fun list(sector: Sector, since: Instant?): List<Document> {
+        val query = database
+            .from(Documents)
+            .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
+            .select()
+            .where { Documents.sector eq sector.name }
+
+        return if (since != null) {
+            query.where {
+                (Documents.modifiedAt greater since.epochSecond) or
+                    (Documents.modifiedAt.isNull() and (Documents.createdAt greater since.epochSecond))
+            }
+        } else {
+            query
+        }
+            .map(Documents::createEntity)
+            .toList()
+            .let { loadDocumentsWithHistory(it) }
+    }
 
     fun findById(id: DocumentId): Document? =
         database

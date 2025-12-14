@@ -1,6 +1,6 @@
 extend type Query {
-    listDocumentsForDashboard: DashboardDocuments!
-    listAllDocuments: [Document!]!
+    listDocumentsForDashboard(since: String): DashboardDocuments!
+    listAllDocuments(since: String): [Document!]!
 }
 
 extend type Mutation {
@@ -40,6 +40,8 @@ type Document {
     sector: Sector
     history: [DocumentHistory!]!
     createdBy: String!
+    createdAt: String!
+    modifiedAt: String!
 }
 type DocumentHistory {
     action: DocumentActionEnum!

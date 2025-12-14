@@ -158,7 +158,9 @@ class DocumentResolver(
                     description = history.description ?: ""
                 )
             },
-            createdBy = doc.createdByUsername ?: ""
+            createdBy = doc.createdByUsername ?: "",
+            createdAt = doc.createdAt.toString(),
+            modifiedAt = (doc.modifiedAt ?: doc.createdAt).toString()
         )
 
     private fun DocumentHistoryTypeEnum.toGraphqlType(): DocumentActionEnum = when (this) {
@@ -281,20 +283,26 @@ class DocumentResolver(
 
     @PreAuthorize("hasRole('USER:READ')")
     @DgsQuery
-    fun listDocumentsForDashboard(): DashboardDocuments {
+    fun listDocumentsForDashboard(
+        @InputArgument since: String?,
+    ): DashboardDocuments {
+        val sinceInstant = since?.let { Instant.parse(it) }
+
         val inbox = documentRepository
             .list(
                 documentMovementRepository.listForTargetSector(AuthUtil.getSector()).map { it -> it.documentId!! }.toList(),
+                sinceInstant,
             ).map { it -> toGraphqlType(it) }
             .toList()
 
         val outbox = documentRepository
             .list(
                 documentMovementRepository.listForSourceSector(AuthUtil.getSector()).map { it -> it.documentId!! }.toList(),
+                sinceInstant,
             ).map { it -> toGraphqlType(it) }
             .toList()
 
-        val inventory = documentRepository.list(AuthUtil.getSector()).map { it -> toGraphqlType(it) }
+        val inventory = documentRepository.list(AuthUtil.getSector(), sinceInstant).map { it -> toGraphqlType(it) }
             .filterNot { it in outbox }
 
         return DashboardDocuments(
@@ -306,8 +314,11 @@ class DocumentResolver(
 
     @PreAuthorize("hasRole('USER:READ')")
     @DgsQuery
-    fun listAllDocuments(): List<Document> {
-        return documentRepository.list().map { it -> toGraphqlType(it) }
+    fun listAllDocuments(
+        @InputArgument since: String?,
+    ): List<Document> {
+        val sinceInstant = since?.let { Instant.parse(it) }
+        return documentRepository.list(sinceInstant).map { it -> toGraphqlType(it) }
     }
 
     @PreAuthorize("hasRole('USER:WRITE')")
