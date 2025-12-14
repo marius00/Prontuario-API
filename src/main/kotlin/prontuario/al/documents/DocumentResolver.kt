@@ -311,7 +311,7 @@ class DocumentResolver(
                     reason = requestWithDoc.request.reason ?: "",
                     requestedBy = requestWithDoc.requestedByUsername,
                     requestedAt = requestWithDoc.request.createdAt.toString(),
-                    sector = requestWithDoc.request.fromSector
+                    sector = requestWithDoc.document.sector.name
                 )
             }
 
@@ -370,7 +370,6 @@ class DocumentResolver(
             id = null,
             documentId = DocumentId(id.toLong()),
             toSector = userSector,
-            fromSector = documentSector,
             userId = userId,
             reason = reason,
         )

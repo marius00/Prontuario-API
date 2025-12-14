@@ -46,13 +46,7 @@ class DocumentRequestRepository(
             .map(DocumentRequests::createEntity)
             .toList()
 
-    fun findByFromSector(sector: String): List<DocumentRequest> =
-        database
-            .from(DocumentRequests)
-            .select()
-            .where { (DocumentRequests.fromSector eq sector) and (DocumentRequests.deletedAt.isNull()) }
-            .map(DocumentRequests::createEntity)
-            .toList()
+
 
     fun findByUserId(userId: UserId): List<DocumentRequest> =
         database
@@ -112,7 +106,6 @@ data class DocumentRequest(
     val id: DocumentRequestId?,
     val documentId: DocumentId,
     val toSector: String,
-    val fromSector: String,
     val userId: UserId,
     val reason: String?,
     val createdAt: Instant = Instant.now(),
@@ -132,7 +125,6 @@ object DocumentRequests : BaseTable<DocumentRequest>("document_requests") {
     val id = long("id").primaryKey()
     val documentId = long("document_id")
     val toSector = varchar("to_sector")
-    val fromSector = varchar("from_sector")
     val userId = long("user_id")
     val reason = text("reason")
     val createdAt = long("created_at")
@@ -146,7 +138,6 @@ object DocumentRequests : BaseTable<DocumentRequest>("document_requests") {
         id = DocumentRequestId(row.getOrFail(id)),
         documentId = DocumentId(row.getOrFail(documentId)),
         toSector = row.getOrFail(toSector),
-        fromSector = row.getOrFail(fromSector),
         userId = UserId(row.getOrFail(userId)),
         reason = row[reason],
         createdAt = row.getDateOrFail(createdAt),
