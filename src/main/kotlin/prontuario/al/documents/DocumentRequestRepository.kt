@@ -46,12 +46,60 @@ class DocumentRequestRepository(
             .map(DocumentRequests::createEntity)
             .toList()
 
-    fun findByToSector(sector: String): List<DocumentRequest> =
+    fun findByFromSector(sector: String): List<DocumentRequest> =
         database
             .from(DocumentRequests)
             .select()
-            .where { (DocumentRequests.toSector eq sector) and (DocumentRequests.deletedAt.isNull()) }
+            .where { (DocumentRequests.fromSector eq sector) and (DocumentRequests.deletedAt.isNull()) }
             .map(DocumentRequests::createEntity)
+            .toList()
+
+    fun findByUserId(userId: UserId): List<DocumentRequest> =
+        database
+            .from(DocumentRequests)
+            .select()
+            .where { (DocumentRequests.userId eq userId.value) and (DocumentRequests.deletedAt.isNull()) }
+            .map(DocumentRequests::createEntity)
+            .toList()
+
+    fun findRequestsFromSectorWithDocuments(sector: String): List<DocumentRequestWithDocument> =
+        database
+            .from(DocumentRequests)
+            .innerJoin(Documents, on = DocumentRequests.documentId eq Documents.id)
+            .leftJoin(prontuario.al.auth.Users, on = DocumentRequests.userId eq prontuario.al.auth.Users.id)
+            .select()
+            .where {
+                (Documents.sector eq sector) and
+                (DocumentRequests.deletedAt.isNull()) and
+                (Documents.deletedAt.isNull())
+            }
+            .map { row ->
+                DocumentRequestWithDocument(
+                    request = DocumentRequests.createEntity(row),
+                    document = Documents.createEntity(row),
+                    requestedByUsername = row[prontuario.al.auth.Users.login] ?: ""
+                )
+            }
+            .toList()
+
+    fun findByUserIdWithDocuments(userId: UserId): List<DocumentRequestWithDocument> =
+        database
+            .from(DocumentRequests)
+            .innerJoin(Documents, on = DocumentRequests.documentId eq Documents.id)
+            .leftJoin(prontuario.al.auth.Users, on = DocumentRequests.userId eq prontuario.al.auth.Users.id)
+            .select()
+            .where {
+                (DocumentRequests.userId eq userId.value) and
+                (DocumentRequests.deletedAt.isNull()) and
+                (Documents.deletedAt.isNull())
+            }
+            .map { row ->
+                DocumentRequestWithDocument(
+                    request = DocumentRequests.createEntity(row),
+                    document = Documents.createEntity(row),
+                    requestedByUsername = row[prontuario.al.auth.Users.login] ?: ""
+                )
+            }
             .toList()
 }
 
@@ -64,6 +112,7 @@ data class DocumentRequest(
     val id: DocumentRequestId?,
     val documentId: DocumentId,
     val toSector: String,
+    val fromSector: String,
     val userId: UserId,
     val reason: String?,
     val createdAt: Instant = Instant.now(),
@@ -73,10 +122,17 @@ data class DocumentRequest(
     override fun getId(): Any? = id
 }
 
+data class DocumentRequestWithDocument(
+    val request: DocumentRequest,
+    val document: Document,
+    val requestedByUsername: String,
+)
+
 object DocumentRequests : BaseTable<DocumentRequest>("document_requests") {
     val id = long("id").primaryKey()
     val documentId = long("document_id")
     val toSector = varchar("to_sector")
+    val fromSector = varchar("from_sector")
     val userId = long("user_id")
     val reason = text("reason")
     val createdAt = long("created_at")
@@ -90,6 +146,7 @@ object DocumentRequests : BaseTable<DocumentRequest>("document_requests") {
         id = DocumentRequestId(row.getOrFail(id)),
         documentId = DocumentId(row.getOrFail(documentId)),
         toSector = row.getOrFail(toSector),
+        fromSector = row.getOrFail(fromSector),
         userId = UserId(row.getOrFail(userId)),
         reason = row[reason],
         createdAt = row.getDateOrFail(createdAt),

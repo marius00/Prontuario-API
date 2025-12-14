@@ -283,8 +283,10 @@ class DocumentResolver(
 
     @PreAuthorize("hasRole('USER:READ')")
     @DgsQuery
-    fun listDocumentsForDashboard(
-    ): DashboardDocuments {
+    fun listDocumentsForDashboard(): DashboardDocuments {
+        val currentUserId = AuthUtil.getUserId()
+        val currentSector = AuthUtil.getSector().name
+
         val inbox = documentRepository
             .list(
                 documentMovementRepository.listForTargetSector(AuthUtil.getSector()).map { it -> it.documentId!! }.toList(),
@@ -300,10 +302,39 @@ class DocumentResolver(
         val inventory = documentRepository.list(AuthUtil.getSector()).map { it -> toGraphqlType(it) }
             .filterNot { it in outbox }
 
+        // Get requests made by current user
+        val yourRequests = documentRequestRepository.findByUserIdWithDocuments(currentUserId)
+            .map { requestWithDoc ->
+                prontuario.al.generated.types.DocumentRequest(
+                    type = DocumentRequestType.YOU_REQUESTED,
+                    document = toGraphqlType(requestWithDoc.document),
+                    reason = requestWithDoc.request.reason ?: "",
+                    requestedBy = requestWithDoc.requestedByUsername,
+                    requestedAt = requestWithDoc.request.createdAt.toString(),
+                    sector = requestWithDoc.request.fromSector
+                )
+            }
+
+        // Get requests made to current user's sector
+        val requestsToYou = documentRequestRepository.findRequestsFromSectorWithDocuments(currentSector)
+            .map { requestWithDoc ->
+                prontuario.al.generated.types.DocumentRequest(
+                    type = DocumentRequestType.SOMEONE_REQUESTED_FROM_YOU,
+                    document = toGraphqlType(requestWithDoc.document),
+                    reason = requestWithDoc.request.reason ?: "",
+                    requestedBy = requestWithDoc.requestedByUsername,
+                    requestedAt = requestWithDoc.request.createdAt.toString(),
+                    sector = requestWithDoc.request.toSector
+                )
+            }
+
+        val allRequests = yourRequests + requestsToYou
+
         return DashboardDocuments(
             inventory = inventory,
             inbox = inbox,
             outbox = outbox,
+            requests = allRequests,
         )
     }
 
@@ -339,6 +370,7 @@ class DocumentResolver(
             id = null,
             documentId = DocumentId(id.toLong()),
             toSector = userSector,
+            fromSector = documentSector,
             userId = userId,
             reason = reason,
         )
