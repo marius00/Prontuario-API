@@ -1,5 +1,5 @@
 extend type Query {
-    listDocumentsForDashboard(since: String): DashboardDocuments!
+    listDocumentsForDashboard: DashboardDocuments!
     listAllDocuments(since: String): [Document!]!
 }
 

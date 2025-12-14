@@ -284,25 +284,20 @@ class DocumentResolver(
     @PreAuthorize("hasRole('USER:READ')")
     @DgsQuery
     fun listDocumentsForDashboard(
-        @InputArgument since: String?,
     ): DashboardDocuments {
-        val sinceInstant = since?.let { Instant.parse(it) }
-
         val inbox = documentRepository
             .list(
                 documentMovementRepository.listForTargetSector(AuthUtil.getSector()).map { it -> it.documentId!! }.toList(),
-                sinceInstant,
             ).map { it -> toGraphqlType(it) }
             .toList()
 
         val outbox = documentRepository
             .list(
                 documentMovementRepository.listForSourceSector(AuthUtil.getSector()).map { it -> it.documentId!! }.toList(),
-                sinceInstant,
             ).map { it -> toGraphqlType(it) }
             .toList()
 
-        val inventory = documentRepository.list(AuthUtil.getSector(), sinceInstant).map { it -> toGraphqlType(it) }
+        val inventory = documentRepository.list(AuthUtil.getSector()).map { it -> toGraphqlType(it) }
             .filterNot { it in outbox }
 
         return DashboardDocuments(
