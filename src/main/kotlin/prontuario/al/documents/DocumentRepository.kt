@@ -27,6 +27,7 @@ class DocumentRepository(
             .from(Documents)
             .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
             .select()
+            .where { Documents.deletedAt.isNull() }
             .map(Documents::createEntity)
             .toList()
             .let { loadDocumentsWithHistory(it) }
@@ -35,7 +36,7 @@ class DocumentRepository(
         database
             .from(Documents)
             .select()
-            .where { Documents.number eq documentNumber }
+            .where { (Documents.number eq documentNumber) and Documents.deletedAt.isNull() }
             .iterator()
             .hasNext()
 
@@ -48,7 +49,7 @@ class DocumentRepository(
             .from(Documents)
             .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
             .select()
-            .where { Documents.id.inList(ids.map { it.value }) }
+            .where { Documents.id.inList(ids.map { it.value }) and Documents.deletedAt.isNull() }
             .map(Documents::createEntity)
             .toList()
             .let { loadDocumentsWithHistory(it) }
@@ -63,7 +64,7 @@ class DocumentRepository(
             .from(Documents)
             .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
             .select()
-            .where { Documents.id.inList(ids.map { it.value }) }
+            .where { Documents.id.inList(ids.map { it.value }) and Documents.deletedAt.isNull() }
 
         return if (since != null) {
             query.where {
@@ -83,7 +84,7 @@ class DocumentRepository(
             .from(Documents)
             .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
             .select()
-            .where { Documents.sector eq sector.name }
+            .where { Documents.sector eq sector.name and Documents.deletedAt.isNull() }
             .map(Documents::createEntity)
             .toList()
             .let { loadDocumentsWithHistory(it) }
@@ -93,11 +94,12 @@ class DocumentRepository(
             .from(Documents)
             .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
             .select()
+            .where { (Documents.deletedAt.isNull()) }
 
         return if (since != null) {
             query.where {
-                (Documents.modifiedAt greater since.epochSecond) or
-                    (Documents.modifiedAt.isNull() and (Documents.createdAt greater since.epochSecond))
+                ((Documents.modifiedAt greater since.epochSecond) or
+                    Documents.modifiedAt.isNull() and (Documents.createdAt greater since.epochSecond))
             }
         } else {
             query
@@ -112,7 +114,7 @@ class DocumentRepository(
             .from(Documents)
             .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
             .select()
-            .where { Documents.sector eq sector.name }
+            .where { (Documents.sector eq sector.name) and (Documents.deletedAt.isNull()) }
 
         return if (since != null) {
             query.where {
@@ -132,7 +134,7 @@ class DocumentRepository(
             .from(Documents)
             .leftJoin(UserTable, on = Documents.userId eq UserTable.id)
             .select()
-            .where { (Documents.id eq id.value) }
+            .where { (Documents.id eq id.value) and (Documents.deletedAt.isNull()) }
             .map(Documents::createEntity)
             .firstOrNull()
             ?.let { loadDocumentWithHistory(it) }
