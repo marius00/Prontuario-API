@@ -165,6 +165,10 @@ class AuthResolver(
         val found = sectorRepository.list().firstOrNull { it.name == name }
             ?: throw GraphqlException("Setor não encontrado", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
 
+        if (found.name == AuthUtil.getSector().name) {
+            throw GraphqlException("Um setor não pode desativar a si mesmo", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.VALIDATION)
+        }
+
         sectorRepository.deactivate(found)
         logger.info { "Sector $name deactivated successfully" }
         return Response(true)
@@ -177,6 +181,10 @@ class AuthResolver(
     ): Response {
         val found = userRepository.findUser(username)
             ?: throw GraphqlException("Usuario não encontrado", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
+
+        if (found.id == AuthUtil.getUserId()) {
+            throw GraphqlException("Um usuário não pode desativar a si mesmo", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.VALIDATION)
+        }
 
         userRepository.deactivate(found)
         logger.info { "User $username deactivated successfully" }
