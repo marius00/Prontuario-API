@@ -25,6 +25,20 @@ class SectorRepository(
             .map(Sectors::createEntity)
             .toList()
 
+    fun list(includeDeleted: Boolean = false): List<Sector> {
+        val query = database
+            .from(Sectors)
+            .select()
+
+        return if (includeDeleted) {
+            query
+        } else {
+            query.where { Sectors.deletedAt.isNull() }
+        }
+            .map(Sectors::createEntity)
+            .toList()
+    }
+
     fun saveRecord(record: Sector) {
         val id = database.insert(Sectors) {
             set(it.name, record.name)

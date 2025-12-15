@@ -7,7 +7,6 @@ import com.netflix.graphql.dgs.InputArgument
 import org.bouncycastle.crypto.generators.SCrypt
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Service
-import prontuario.al.auth.Users.sector
 import prontuario.al.exception.CustomErrorClassification
 import prontuario.al.exception.GraphqlException
 import prontuario.al.exception.GraphqlExceptionErrorCode
@@ -141,14 +140,14 @@ class AuthResolver(
         @InputArgument name: String,
         @InputArgument code: String?,
     ): Response {
-        val found = sectorRepository.list().firstOrNull { it.name == name }
+        val found = sectorRepository.list(includeDeleted = true).firstOrNull { it.name == name }
         if (found != null) {
             if (found.deletedAt != null) {
-                logger.warn { "Sector $sector already exists but has been deactivated, reactivating" }
+                logger.warn { "Sector $name already exists but has been deactivated, reactivating" }
                 sectorRepository.reActivate(found)
                 return Response(true)
             }
-            logger.warn { "Attempted to create sector $sector, but already exists" }
+            logger.warn { "Attempted to create sector $name, but already exists" }
             throw GraphqlException("Setor já existe", CustomErrorClassification.BAD_REQUEST, errorCode = GraphqlExceptionErrorCode.ALREADY_EXISTS)
         }
 
