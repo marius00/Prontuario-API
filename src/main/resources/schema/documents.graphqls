@@ -18,6 +18,8 @@ extend type Mutation {
     editDocument(input: ExistingDocumentInput!): Document!
     "Request a document that is not in your inventory"
     requestDocument(id: Int!, reason: String!): Response!
+
+    deleteDocument(id: Int!): Response!
 }
 
 enum DocumentTypeEnum {

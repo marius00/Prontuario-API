@@ -390,4 +390,22 @@ class DocumentResolver(
         return Response(true)
     }
 
+
+    @PreAuthorize("hasRole('ADMIN:WRITE')")
+    @DgsMutation
+    fun deleteDocument(
+        @InputArgument id: Int,
+    ): Response {
+        val userId = AuthUtil.getUserId()
+        val userSector = AuthUtil.getSector().name
+        logger.info { "User $userId from sector $userSector is deleting document $id" }
+
+        val document = documentRepository.findById(DocumentId(id.toLong()))
+            ?: throw GraphqlException("Document with id $id not found", errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
+
+        documentRepository.delete(document)
+
+        return Response(true)
+    }
+
 }

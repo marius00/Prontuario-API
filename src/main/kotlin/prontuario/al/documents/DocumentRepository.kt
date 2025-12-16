@@ -139,6 +139,15 @@ class DocumentRepository(
             .firstOrNull()
             ?.let { loadDocumentWithHistory(it) }
 
+    fun delete(record: Document) {
+        database.update(Documents) {
+            set(it.deletedAt, Instant.now().epochSecond)
+            where {
+                it.id eq record.id!!.value
+            }
+        }
+    }
+
     fun update(record: Document): Document {
         database.update(Documents) {
             set(it.number, record.number)
