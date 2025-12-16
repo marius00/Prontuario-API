@@ -44,6 +44,7 @@ class DocumentResolver(
             sector = AuthUtil.getSector(),
             createdBy = AuthUtil.getUserId(),
             createdByUsername = AuthUtil.getUsername(),
+            intakeAt = input.intakeAt?.let { Instant.parse(it) },
         )
 
         val doc = documentRepository.saveRecord(document)
@@ -171,6 +172,7 @@ class DocumentResolver(
                     description = history.description ?: ""
                 )
             },
+            intakeAt = doc.intakeAt?.toString(),
             createdBy = doc.createdByUsername ?: "",
             createdAt = doc.createdAt.toString(),
             modifiedAt = (doc.modifiedAt ?: doc.createdAt).toString()

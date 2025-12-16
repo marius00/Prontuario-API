@@ -156,6 +156,7 @@ class DocumentRepository(
             set(it.type, record.type)
             set(it.sector, record.sector.name)
             set(it.modifiedAt, Instant.now().epochSecond)
+            set(it.intakeAt, record.intakeAt?.epochSecond)
             where {
                 it.id eq record.id!!.value
             }
@@ -172,6 +173,7 @@ class DocumentRepository(
             set(it.type, record.type)
             set(it.sector, record.sector.name)
             set(it.userId, record.createdBy.value)
+            set(it.intakeAt, record.intakeAt?.epochSecond)
             set(it.createdAt, record.createdAt.epochSecond)
         } as Number
 
@@ -212,6 +214,7 @@ data class Document(
     var createdBy: UserId,
     val createdByUsername: String?,
     val history: List<DocumentHistory> = emptyList(),
+    val intakeAt: Instant? = null,
     val createdAt: Instant = Instant.now(),
     val modifiedAt: Instant? = null,
     val deletedAt: Instant? = null,
@@ -227,6 +230,7 @@ object Documents : BaseTable<Document>("document") {
     val sector = varchar("sector")
     val userId = long("user_id")
     val type = enum<DocumentTypeEnum>("type")
+    val intakeAt = long("intake_at")
     val createdAt = long("created_at")
     val modifiedAt = long("modified_at")
     val deletedAt = long("deleted_at")
@@ -243,6 +247,7 @@ object Documents : BaseTable<Document>("document") {
         type = row.getOrFail(type),
         createdBy = UserId(row.getOrFail(userId)),
         createdByUsername = row.getOrFail(UserTable.login),
+        intakeAt = row.getDate(intakeAt),
         createdAt = row.getDateOrFail(createdAt),
         modifiedAt = row.getDate(modifiedAt),
         deletedAt = row.getDate(deletedAt),

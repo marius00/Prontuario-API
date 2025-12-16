@@ -59,6 +59,7 @@ type Document {
     createdBy: String!
     createdAt: String!
     modifiedAt: String!
+    intakeAt: String
 }
 type DocumentHistory {
     action: DocumentActionEnum!
@@ -73,6 +74,7 @@ input NewDocumentInput {
     name: String!
     type: DocumentTypeEnum!
     observations: String
+    intakeAt: String
 }
 
 input ExistingDocumentInput {
@@ -82,6 +84,7 @@ input ExistingDocumentInput {
     name: String!
     type: DocumentTypeEnum!
     observations: String
+    intakeAt: String
 }
 
 enum DocumentActionEnum{
