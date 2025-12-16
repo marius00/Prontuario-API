@@ -51,9 +51,9 @@ type DocumentRequest {
 type Document {
     id: Int!
     number: Int!
-    name: String!  @StringCase(case: UPPER)
+    name: String!  @StringCase(case: UPPER) @AccentRemoverDirective
     type: DocumentTypeEnum!
-    observations: String  @StringCase(case: UPPER)
+    observations: String  @StringCase(case: UPPER) @AccentRemoverDirective
     sector: Sector
     history: [DocumentHistory!]!
     createdBy: String!

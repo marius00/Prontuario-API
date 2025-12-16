@@ -32,7 +32,7 @@ class ResponseLoggingFilter : OncePerRequestFilter() {
     @Throws(UnsupportedEncodingException::class)
     private fun logResponse(response: ContentCachingResponseWrapper) {
         val content = response.contentAsByteArray
-        if (content.size > 0) {
+        if (content.isNotEmpty()) {
             val responseBody = String(content, charset(response.characterEncoding))
             logger.info("RESPONSE : {$responseBody}")
         }
