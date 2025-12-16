@@ -49,9 +49,9 @@ type DocumentRequest {
 type Document {
     id: Int!
     number: Int!
-    name: String!
+    name: String!  @StringCase(case: UPPER)
     type: DocumentTypeEnum!
-    observations: String
+    observations: String  @StringCase(case: UPPER)
     sector: Sector
     history: [DocumentHistory!]!
     createdBy: String!
