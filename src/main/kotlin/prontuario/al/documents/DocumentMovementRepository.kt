@@ -30,11 +30,11 @@ class DocumentMovementRepository(
             .map(DocumentMovements::createEntity)
             .toList()
 
-    fun listForTargetSector(sector: Sector): List<DocumentMovement> =
+    fun listForTargetSector(sector: Sector, login: String): List<DocumentMovement> =
         database
             .from(DocumentMovements)
             .select()
-            .where { DocumentMovements.toSector.eq(sector.name) }
+            .where { (DocumentMovements.toSector.eq(sector.name)) and (DocumentMovements.toUser.isNull() or DocumentMovements.toUser.eq(login)) }
             .map(DocumentMovements::createEntity)
             .toList()
 
@@ -57,6 +57,7 @@ class DocumentMovementRepository(
             set(it.fromSector, record.fromSector)
             set(it.toSector, record.toSector)
             set(it.userId, record.userId.value)
+            set(it.toUser, record.toUser)
         }
 
         return record
@@ -68,6 +69,7 @@ data class DocumentMovement(
     val userId: UserId,
     val fromSector: String,
     val toSector: String,
+    val toUser: String? = null,
 ) : IBaseModel {
     override fun getId(): Any? = documentId
 }
@@ -77,6 +79,7 @@ object DocumentMovements : BaseTable<DocumentMovement>("document_movement") {
     val userId = long("user_id")
     val fromSector = varchar("from_sector")
     val toSector = varchar("to_sector")
+    val toUser = varchar("to_user")
 
     override fun doCreateEntity(
         row: QueryRowSet,
@@ -86,5 +89,6 @@ object DocumentMovements : BaseTable<DocumentMovement>("document_movement") {
         userId = UserId(row.getOrFail(userId)),
         fromSector = row.getOrFail(fromSector),
         toSector = row.getOrFail(toSector),
+        toUser = row[toUser],
     )
 }

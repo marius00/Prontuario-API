@@ -7,6 +7,7 @@ import com.netflix.graphql.dgs.InputArgument
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.transaction.annotation.Transactional
 import prontuario.al.auth.AuthUtil
+import prontuario.al.auth.UserRepository
 import prontuario.al.exception.GraphqlException
 import prontuario.al.exception.GraphqlExceptionErrorCode
 import prontuario.al.generated.types.*
@@ -21,6 +22,7 @@ class DocumentResolver(
     private val documentHistoryRepository: DocumentHistoryRepository,
     private val documentMovementRepository: DocumentMovementRepository,
     private val documentRequestRepository: DocumentRequestRepository,
+    private val userRepository: UserRepository,
 ) {
     @PreAuthorize("hasRole('USER:WRITE')")
     @DgsMutation
@@ -65,12 +67,23 @@ class DocumentResolver(
     fun sendDocument(
         @InputArgument documents: List<Int>,
         @InputArgument sector: String,
+        @InputArgument username: String?,
     ): Response {
         val userSector = AuthUtil.getSector().name
 
         if (userSector == sector) {
             throw GraphqlException("Você não pode enviar um documento para o mesmo setor.", errorCode = GraphqlExceptionErrorCode.VALIDATION)
         }
+
+        val targetUser = if (username != null) {
+            userRepository.findUser(username) ?: throw GraphqlException("Usuário '$username' não encontrado.", errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
+        } else {
+            null
+        }
+        if (targetUser != null && targetUser.sector != sector) {
+            throw GraphqlException("O usuário '$username' não pertence ao setor '$sector'.", errorCode = GraphqlExceptionErrorCode.VALIDATION)
+        }
+
 
         documents.forEach {
             if (documentRepository.findById(DocumentId(it.toLong()))?.sector?.name != userSector) {
@@ -109,7 +122,7 @@ class DocumentResolver(
     fun acceptDocument(
         @InputArgument id: Int,
     ): prontuario.al.generated.types.Document {
-        val movement = documentMovementRepository.listForTargetSector(AuthUtil.getSector()).firstOrNull { it -> it.documentId!!.value == id.toLong() } ?: throw GraphqlException("Esse documento não foi encaminhado para seu setor.")
+        val movement = documentMovementRepository.listForTargetSector(AuthUtil.getSector(), AuthUtil.getUsername()).firstOrNull { it -> it.documentId!!.value == id.toLong() } ?: throw GraphqlException("Esse documento não foi encaminhado para seu setor.")
 
         documentMovementRepository.delete(movement)
         documentHistoryRepository.saveRecord(
@@ -179,7 +192,7 @@ class DocumentResolver(
         @InputArgument id: Int,
         @InputArgument description: String?,
     ): prontuario.al.generated.types.Document {
-        val movement = documentMovementRepository.listForTargetSector(AuthUtil.getSector()).firstOrNull { it -> it.documentId!!.value == id.toLong() } ?: throw GraphqlException("Esse documento não foi encaminhado para seu setor.")
+        val movement = documentMovementRepository.listForTargetSector(AuthUtil.getSector(), AuthUtil.getUsername()).firstOrNull { it -> it.documentId!!.value == id.toLong() } ?: throw GraphqlException("Esse documento não foi encaminhado para seu setor.")
 
         documentMovementRepository.delete(movement)
         documentHistoryRepository.saveRecord(
@@ -289,7 +302,7 @@ class DocumentResolver(
 
         val inbox = documentRepository
             .list(
-                documentMovementRepository.listForTargetSector(AuthUtil.getSector()).map { it -> it.documentId!! }.toList(),
+                documentMovementRepository.listForTargetSector(AuthUtil.getSector(), AuthUtil.getUsername()).map { it -> it.documentId!! }.toList(),
             ).map { it -> toGraphqlType(it) }
             .toList()
 
@@ -404,6 +417,17 @@ class DocumentResolver(
             ?: throw GraphqlException("Document with id $id not found", errorCode = GraphqlExceptionErrorCode.NOT_FOUND)
 
         documentRepository.delete(document)
+        documentHistoryRepository.saveRecord(
+            DocumentHistory(
+                id = null,
+                documentId = DocumentId(id.toLong()),
+                action = DocumentHistoryTypeEnum.DELETED,
+                sector = userSector,
+                description = "Excluido por  ${AuthUtil.getUsername()}",
+                userId = userId,
+                username = AuthUtil.getUsername(),
+            ),
+        )
 
         return Response(true)
     }

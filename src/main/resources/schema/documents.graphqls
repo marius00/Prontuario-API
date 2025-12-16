@@ -6,7 +6,7 @@ extend type Query {
 extend type Mutation {
     createDocument(input: NewDocumentInput!): Document!
     "Send document to a different sector"
-    sendDocument(documents: [Int!]!, sector: String!): Response!
+    sendDocument(documents: [Int!]!, sector: String!, username: String): Response!
     "Receiver can signal that a document was received"
     acceptDocument(id: Int!): Document!
     acceptDocuments(ids: [Int!]!): [Document!]!
