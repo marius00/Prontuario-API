@@ -14,6 +14,7 @@ import prontuario.al.generated.types.*
 import prontuario.al.generated.types.Document
 import prontuario.al.logger.GraphqlLoggingFilter.Companion.logger
 import java.time.Instant
+import java.time.LocalDate
 
 @DgsComponent
 @Transactional
@@ -44,7 +45,7 @@ class DocumentResolver(
             sector = AuthUtil.getSector(),
             createdBy = AuthUtil.getUserId(),
             createdByUsername = AuthUtil.getUsername(),
-            intakeAt = input.intakeAt?.let { Instant.parse(it) },
+            intakeAt = input.intakeAt?.let { LocalDate.parse(it) },
         )
 
         val doc = documentRepository.saveRecord(document)
@@ -262,8 +263,8 @@ class DocumentResolver(
                 doc.createdBy,
                 doc.createdByUsername,
                 doc.history,
-                doc.createdAt,
-                Instant.now(),
+                createdAt = doc.createdAt,
+                intakeAt = input.intakeAt?.let { LocalDate.parse(it) },
             ),
         )
 

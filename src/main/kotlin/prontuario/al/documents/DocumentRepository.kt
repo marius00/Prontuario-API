@@ -15,6 +15,7 @@ import prontuario.al.ktorm.getDate
 import prontuario.al.ktorm.getDateOrFail
 import prontuario.al.ktorm.getOrFail
 import java.time.Instant
+import java.time.LocalDate
 import prontuario.al.auth.Users as UserTable
 
 @Repository
@@ -156,7 +157,7 @@ class DocumentRepository(
             set(it.type, record.type)
             set(it.sector, record.sector.name)
             set(it.modifiedAt, Instant.now().epochSecond)
-            set(it.intakeAt, record.intakeAt?.epochSecond)
+            set(it.intakeAt, record.intakeAt?.toString())
             where {
                 it.id eq record.id!!.value
             }
@@ -173,7 +174,7 @@ class DocumentRepository(
             set(it.type, record.type)
             set(it.sector, record.sector.name)
             set(it.userId, record.createdBy.value)
-            set(it.intakeAt, record.intakeAt?.epochSecond)
+            set(it.intakeAt, record.intakeAt?.toString())
             set(it.createdAt, record.createdAt.epochSecond)
         } as Number
 
@@ -214,7 +215,7 @@ data class Document(
     var createdBy: UserId,
     val createdByUsername: String?,
     val history: List<DocumentHistory> = emptyList(),
-    val intakeAt: Instant? = null,
+    val intakeAt: LocalDate? = null,
     val createdAt: Instant = Instant.now(),
     val modifiedAt: Instant? = null,
     val deletedAt: Instant? = null,
@@ -230,7 +231,7 @@ object Documents : BaseTable<Document>("document") {
     val sector = varchar("sector")
     val userId = long("user_id")
     val type = enum<DocumentTypeEnum>("type")
-    val intakeAt = long("intake_at")
+    val intakeAt = varchar("intake_at")
     val createdAt = long("created_at")
     val modifiedAt = long("modified_at")
     val deletedAt = long("deleted_at")
@@ -246,8 +247,8 @@ object Documents : BaseTable<Document>("document") {
         sector = Sector(row.getOrFail(sector), null),
         type = row.getOrFail(type),
         createdBy = UserId(row.getOrFail(userId)),
-        createdByUsername = row.getOrFail(UserTable.login),
-        intakeAt = row.getDate(intakeAt),
+        createdByUsername =  row.getOrFail(UserTable.login),
+        intakeAt = row[intakeAt]?.let { LocalDate.parse(it) },
         createdAt = row.getDateOrFail(createdAt),
         modifiedAt = row.getDate(modifiedAt),
         deletedAt = row.getDate(deletedAt),
